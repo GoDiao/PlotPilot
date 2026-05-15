@@ -178,7 +178,7 @@ watch(
   min-height: 0;
   max-height: 100vh;
   overflow: hidden;
-  background: var(--app-page-bg, #f0f2f8);
+  background: var(--app-page-bg, #ffffff);
   display: flex;
   flex-direction: column;
 }
@@ -206,12 +206,24 @@ watch(
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding: 16px 20px 20px;
 }
 
 .workbench-inner :deep(.n-split) {
   flex: 1;
   min-height: 0;
   height: 100%;
+  gap: 14px;
+}
+
+.workbench-inner :deep(.n-split__resize-trigger-wrapper) {
+  width: 14px;
+}
+
+.workbench-inner :deep(.n-split__resize-trigger) {
+  background: var(--aitext-split-border, #d9d9dd);
+  border-radius: 9999px;
+  width: 1px;
 }
 
 .workbench-inner :deep(.n-split-pane-1),

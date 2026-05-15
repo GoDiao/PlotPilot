@@ -1,13 +1,13 @@
-<template>
+﻿<template>
   <n-modal
     v-model:show="show"
     preset="card"
-    title="主题设置"
+    title="涓婚璁剧疆"
     style="width: min(560px, 96vw)"
     :mask-closable="false"
     :segmented="{ content: 'soft', footer: 'soft' }"
   >
-    <!-- ═══ 主题选择 ═══ -->
+    <!-- 鈺愨晲鈺?涓婚閫夋嫨 鈺愨晲鈺?-->
     <div class="theme-section">
       <div class="theme-preview-bar">
         <div
@@ -53,7 +53,7 @@
       </div>
 
       <n-alert type="info" style="margin-top: 20px" :bordered="false">
-        主题切换会立即生效并自动保存。选择「跟随系统」时，将根据操作系统的亮/暗模式自动切换。
+        涓婚鍒囨崲浼氱珛鍗崇敓鏁堝苟鑷姩淇濆瓨銆傞€夋嫨銆岃窡闅忕郴缁熴€嶆椂锛屽皢鏍规嵁鎿嶄綔绯荤粺鐨勪寒/鏆楁ā寮忚嚜鍔ㄥ垏鎹€?
       </n-alert>
     </div>
   </n-modal>
@@ -71,38 +71,38 @@ const themeStore = useThemeStore()
 const themeOptions = computed(() => [
   {
     value: 'light' as ThemeMode,
-    label: '浅色',
+    label: '娴呰壊',
     desc: '清爽明亮的默认主题',
     icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26"><circle cx="12" cy="12" r="5" fill="#f59e0b"/><path d="M12 2v2m0 16v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M2 12h2m16 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/></svg>',
   },
   {
     value: 'dark' as ThemeMode,
-    label: '深色',
-    desc: '护眼暗色主题，适合夜间写作',
+    label: '娣辫壊',
+    desc: '鎶ょ溂鏆楄壊涓婚锛岄€傚悎澶滈棿鍐欎綔',
     icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26"><path d="M12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36A7 7 0 0112 3z" fill="#818cf8"/></svg>',
   },
   {
     value: 'anchor' as ThemeMode,
-    label: '黑金',
-    desc: '主播限定色，奢华暗金风格',
+    label: '榛戦噾',
+    desc: '涓绘挱闄愬畾鑹诧紝濂㈠崕鏆楅噾椋庢牸',
     icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26"><defs><linearGradient id="ag" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#d4a843"/><stop offset="100%" stop-color="#f5d485"/></linearGradient></defs><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="url(#ag)"/></svg>',
   },
   {
     value: 'paper' as ThemeMode,
-    label: '纸页',
-    desc: '温润纸感，适合白天长时间写稿',
+    label: '绾搁〉',
+    desc: '温润纸感，适合白天长时间写作',
     icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26"><path d="M5 3h10l4 4v14H5z" fill="#fff4df" stroke="#8b5e34" stroke-width="1.6"/><path d="M15 3v5h5" fill="none" stroke="#c89b6b" stroke-width="1.6"/><path d="M8 12h8M8 16h6" stroke="#8b5e34" stroke-width="1.7" stroke-linecap="round"/></svg>',
   },
   {
     value: 'ocean' as ThemeMode,
-    label: '深海',
-    desc: '柔和墨蓝，适合夜间沉浸写作',
+    label: '娣辨捣',
+    desc: '鏌斿拰澧ㄨ摑锛岄€傚悎澶滈棿娌夋蹈鍐欎綔',
     icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26"><defs><linearGradient id="og" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#76d1c8"/><stop offset="100%" stop-color="#24515a"/></linearGradient></defs><path d="M3 15c3-5 6 3 9-2s6 3 9-2v7H3z" fill="url(#og)"/><path d="M5 8c2-2 4 2 6 0s4 2 8-1" stroke="#76d1c8" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
   },
   {
     value: 'auto' as ThemeMode,
-    label: '跟随系统',
-    desc: '自动匹配操作系统偏好设置',
+    label: '璺熼殢绯荤粺',
+    desc: '鑷姩鍖归厤鎿嶄綔绯荤粺鍋忓ソ璁剧疆',
     icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26"><rect x="2" y="4" width="20" height="16" rx="2" stroke="#94a3b8" stroke-width="2" fill="none"/><path d="M8 14h8M10 10h4" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/></svg>',
   },
 ])
@@ -116,18 +116,18 @@ function handleThemeChange(newMode: ThemeMode) {
   }
 
   if ('startViewTransition' in document) {
-    // Chrome/Edge 111+：页面截图 + 交叉淡入淡出，平滑无闪烁
+    // Chrome/Edge 111+锛氶〉闈㈡埅鍥?+ 浜ゅ弶娣″叆娣″嚭锛屽钩婊戞棤闂儊
     ;(document as Document & { startViewTransition: (cb: () => void) => void })
       .startViewTransition(applyTheme)
   } else {
-    // 降级：CSS transition 方案（Firefox / Safari）
+    // 闄嶇骇锛欳SS transition 鏂规锛團irefox / Safari锛?
     const root = (document as any).documentElement as HTMLElement
     root.classList.add('theme-transitioning')
     applyTheme()
     setTimeout(() => root.classList.remove('theme-transitioning'), 360)
   }
 
-  message.success(`已切换到${label}主题`)
+  message.success(`宸插垏鎹㈠埌${label}涓婚`)
 }
 </script>
 
@@ -136,7 +136,7 @@ function handleThemeChange(newMode: ThemeMode) {
   min-height: 200px;
 }
 
-/* ── 预览卡片 ──────────────────────────────────────── */
+/* 鈹€鈹€ 棰勮鍗＄墖 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€ */
 .theme-preview-bar {
   display: flex;
   justify-content: center;
@@ -163,7 +163,7 @@ function handleThemeChange(newMode: ThemeMode) {
     0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* 黑金模式预览卡片：金色边框 + 微金底 */
+/* 榛戦噾妯″紡棰勮鍗＄墖锛氶噾鑹茶竟妗?+ 寰噾搴?*/
 [data-theme='anchor'] .theme-preview-card.is-dark,
 .theme-preview-card.is-anchor {
   background: linear-gradient(145deg, #0d0e14, #12141c);
@@ -274,7 +274,7 @@ function handleThemeChange(newMode: ThemeMode) {
 .preview-line.medium { width: 70%; }
 .preview-line.short { width: 42%; }
 
-/* ── 三选卡 ────────────────────────────────────────── */
+/* 鈹€鈹€ 涓夐€夊崱 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€ */
 .theme-mode-cards {
   display: flex;
   flex-direction: column;
@@ -307,7 +307,7 @@ function handleThemeChange(newMode: ThemeMode) {
     0 2px 8px rgba(79, 70, 229, 0.1);
 }
 
-/* 黑金模式激活态：金色光晕 */
+/* 榛戦噾妯″紡婵€娲绘€侊細閲戣壊鍏夋檿 */
 .theme-mode-card.active[data-mode="anchor"] {
   border-color: var(--color-gold, #d4a843);
   background: linear-gradient(135deg, rgba(212, 168, 67, 0.06), rgba(245, 212, 133, 0.03));
@@ -399,5 +399,134 @@ function handleThemeChange(newMode: ThemeMode) {
 
 .theme-mode-card.active[data-mode="ocean"] .mode-card-check {
   color: #76d1c8;
+}
+</style>
+
+<style scoped>
+.theme-section {
+  min-height: 200px;
+}
+
+.theme-preview-bar {
+  justify-content: flex-start;
+  margin-bottom: 24px;
+}
+
+.theme-preview-card {
+  width: 100%;
+  height: 150px;
+  border-radius: 22px;
+  border: 1px solid var(--aitext-split-border, #d9d9dd);
+  box-shadow: none;
+}
+
+.theme-preview-card.is-dark,
+.theme-preview-card.is-anchor,
+.theme-preview-card.is-ocean {
+  background: var(--cohere-green, #003c33);
+  border-color: rgba(255,255,255,0.14);
+  box-shadow: none;
+}
+
+.theme-preview-card.is-paper {
+  background: var(--cohere-stone, #eeece7);
+  border-color: var(--aitext-split-border, #d9d9dd);
+  box-shadow: none;
+}
+
+.preview-header {
+  background: transparent;
+  border-bottom: 1px solid var(--aitext-split-border, #d9d9dd);
+}
+
+.is-dark .preview-header,
+.is-ocean .preview-header,
+.is-anchor .preview-header {
+  background: transparent;
+  border-bottom-color: rgba(255,255,255,0.14);
+}
+
+.preview-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--cohere-coral, #ff7759);
+}
+
+.preview-body {
+  background: transparent;
+  gap: 12px;
+  padding: 20px;
+}
+
+.preview-line {
+  height: 1px;
+  border-radius: 0;
+  background: var(--cohere-hairline, #d9d9dd);
+}
+
+.is-dark .preview-line,
+.is-ocean .preview-line,
+.is-anchor .preview-line {
+  background: rgba(255,255,255,0.22);
+}
+
+.theme-mode-cards {
+  gap: 0;
+  border-top: 1px solid var(--aitext-split-border, #d9d9dd);
+}
+
+.theme-mode-card {
+  gap: 16px;
+  padding: 18px 0;
+  border: 0;
+  border-bottom: 1px solid var(--aitext-split-border, #d9d9dd);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.theme-mode-card:hover,
+.theme-mode-card.active,
+.theme-mode-card.active[data-mode="anchor"],
+.theme-mode-card.active[data-mode="paper"],
+.theme-mode-card.active[data-mode="ocean"] {
+  border-color: var(--aitext-split-border, #d9d9dd);
+  background: transparent;
+  box-shadow: none;
+}
+
+.mode-card-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 9999px;
+  background: var(--cohere-stone, #eeece7);
+  border: 1px solid var(--aitext-split-border, #d9d9dd);
+}
+
+.theme-mode-card.active .mode-card-icon,
+.theme-mode-card.active[data-mode="anchor"] .mode-card-icon,
+.theme-mode-card.active[data-mode="paper"] .mode-card-icon,
+.theme-mode-card.active[data-mode="ocean"] .mode-card-icon {
+  background: var(--cohere-near-black, #17171c);
+  border-color: var(--cohere-near-black, #17171c);
+  color: #ffffff;
+}
+
+.mode-card-name {
+  font-family: var(--font-display, sans-serif);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.04em;
+}
+
+.mode-card-desc {
+  color: var(--app-text-muted, #93939f);
+}
+
+.mode-card-check,
+.theme-mode-card.active[data-mode="anchor"] .mode-card-check,
+.theme-mode-card.active[data-mode="paper"] .mode-card-check,
+.theme-mode-card.active[data-mode="ocean"] .mode-card-check {
+  color: var(--cohere-coral, #ff7759);
 }
 </style>

@@ -472,7 +472,7 @@ defineExpose({ loadTree })
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 8px 0;
+  padding: 4px 0;
 }
 .structure-body {
   flex: 1;
@@ -489,17 +489,35 @@ defineExpose({ loadTree })
 .node-label {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
-.node-icon { font-size: 16px; }
-.node-title { font-size: 13px; }
+.node-icon { font-size: 14px; opacity: 0.75; }
+.node-title {
+  font-size: 13px;
+  letter-spacing: -0.01em;
+}
 .node-range {
   font-size: 12px;
-  color: #999;
+  color: var(--app-text-muted, #93939f);
   margin-left: 8px;
+  font-family: var(--font-mono, monospace);
 }
-.node-level-1 { font-weight: 600; }
+.node-level-1 { font-weight: 500; }
 .node-level-2 { font-weight: 500; }
 .node-level-3 { font-weight: normal; }
 .node-level-4 { font-weight: normal; font-size: 13px; }
+
+:deep(.n-tree-node-content) {
+  min-height: 34px;
+  border-radius: 8px;
+}
+
+:deep(.n-tree-node--selected .n-tree-node-content) {
+  background: var(--cohere-near-black, #17171c) !important;
+  color: #ffffff;
+}
+
+:deep(.n-tree-node--selected .node-range) {
+  color: rgba(255, 255, 255, 0.68);
+}
 </style>

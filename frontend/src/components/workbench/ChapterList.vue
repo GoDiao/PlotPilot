@@ -168,18 +168,23 @@ const handleTreeLoaded = (hasData: boolean) => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 12px 10px;
+  padding: 18px 14px;
   background: var(--app-surface);
-  border-right: 1px solid var(--aitext-split-border);
+  border: 1px solid var(--aitext-split-border);
+  border-radius: 22px;
 }
 
 .sidebar-head {
-  margin-bottom: 10px;
+  margin-bottom: 18px;
 }
 
 .back-btn {
-  margin-bottom: 8px;
-  font-weight: 500;
+  margin-bottom: 12px;
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .ico-arrow {
@@ -214,8 +219,8 @@ const handleTreeLoaded = (hasData: boolean) => {
 }
 
 .sidebar-foot {
-  padding: 8px 10px;
-  border-top: 1px solid var(--n-divider-color, rgba(0,0,0,.06));
+  padding: 14px 4px 0;
+  border-top: 1px solid var(--aitext-split-border, #d9d9dd);
 }
 
 .sidebar-empty {
@@ -226,18 +231,20 @@ const handleTreeLoaded = (hasData: boolean) => {
 }
 
 .sidebar :deep(.n-list-item) {
-  border-radius: 10px;
-  margin-bottom: 4px;
-  transition: background var(--app-transition), transform 0.15s ease;
+  border-radius: 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--aitext-split-border, #d9d9dd);
+  transition: background var(--app-transition), color var(--app-transition);
 }
 
 .sidebar :deep(.n-list-item:hover) {
-  background: var(--color-brand-light);
+  background: var(--cohere-stone, #eeece7);
 }
 
 .sidebar :deep(.n-list-item.is-active) {
-  background: var(--color-brand-light);
-  box-shadow: inset 0 0 0 1px var(--color-brand-border);
+  background: var(--cohere-near-black, #17171c);
+  color: #ffffff;
+  box-shadow: none;
 }
 
 .load-more-bar {

@@ -280,15 +280,12 @@
         </section>
 
         <!-- 底部版权 -->
-        <footer class="home-footer">
-          <span class="footer-brand">PlotPilot</span>
-          <span class="footer-sep">·</span>
-          <span class="footer-sub">墨枢</span>
-          <span class="footer-text">由 PlotPilot（墨枢）团队倾力开发</span>
-          <a class="footer-link" href="https://www.douyin.com/user/MS4wLjABAAAA91472902104" target="_blank" rel="noopener noreferrer">
-            抖音：林亦 91472902104
-          </a>
-          <span class="footer-text">每晚 9 点随缘直播</span>
+        <footer class="home-footer product-footer">
+          <span class="footer-text">Local writing console</span>
+          <span class="footer-sep">/</span>
+          <span class="footer-text">Drafts stay in your workspace</span>
+          <span class="footer-sep">/</span>
+          <span class="footer-text">Private project registry</span>
         </footer>
       </div>
     </div>

@@ -1,6 +1,6 @@
-/* ═══════════════════════════════════════════════════
-   PlotPilot 全局样式 — 颜色架构（亮色 / 暗色 / 黑金）
-   ═══════════════════════════════════════════════════ */
+﻿/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?
+   PlotPilot 鍏ㄥ眬鏍峰紡 鈥?棰滆壊鏋舵瀯锛堜寒鑹?/ 鏆楄壊 / 榛戦噾锛?
+   鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?*/
 
 * {
   margin: 0;
@@ -37,11 +37,11 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* ═══════════════════════════════════════════════════
-   亮色模式 (默认)
-   ═══════════════════════════════════════════════════ */
+/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?
+   浜壊妯″紡 (榛樿)
+   鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?*/
 :root {
-  /* ── 品牌色 ── */
+  /* 鈹€鈹€ 鍝佺墝鑹?鈹€鈹€ */
   --color-brand: #2563eb;
   --color-brand-hover: #3b82f6;
   --color-brand-pressed: #1d4ed8;
@@ -49,21 +49,21 @@ body {
   --color-brand-light: rgba(37, 99, 235, 0.08);
   --color-brand-border: rgba(37, 99, 235, 0.18);
 
-  /* ── 黑金装饰色 ── */
+  /* 鈹€鈹€ 榛戦噾瑁呴グ鑹?鈹€鈹€ */
   --color-gold: #d4a853;
   --color-gold-light: #f5deb3;
   --color-gold-dim: rgba(212, 168, 83, 0.15);
   --color-gold-border: rgba(212, 168, 83, 0.25);
   --color-gold-glow: rgba(212, 168, 83, 0.35);
 
-  /* ── 黑金主播限定色（主播品牌标识）── */
+  /* 鈹€鈹€ 榛戦噾涓绘挱闄愬畾鑹诧紙涓绘挱鍝佺墝鏍囪瘑锛夆攢鈹€ */
   --color-anchor: #c9a227;
   --color-anchor-light: #f5d77e;
   --color-anchor-dim: rgba(201, 162, 39, 0.12);
   --color-anchor-border: rgba(201, 162, 39, 0.28);
   --color-anchor-glow: rgba(201, 162, 39, 0.45);
 
-  /* ── 语义色 ── */
+  /* 鈹€鈹€ 璇箟鑹?鈹€鈹€ */
   --color-success: #22c55e;
   --color-success-light: #dcfce7;
   --color-success-dim: rgba(34, 197, 94, 0.12);
@@ -80,62 +80,62 @@ body {
   --color-purple-light: #ede9fe;
   --color-purple-dim: rgba(139, 92, 246, 0.12);
 
-  /* ── 文字色（全部使用变量，禁止硬编码）── */
+  /* 鈹€鈹€ 鏂囧瓧鑹诧紙鍏ㄩ儴浣跨敤鍙橀噺锛岀姝㈢‖缂栫爜锛夆攢鈹€ */
   --app-text-primary: #111827;
   --app-text-secondary: #1f2937;
   --app-text-muted: #475569;
   --app-text-inverse: #ffffff;
 
-  /* 与 Naive UI n-text depth、旧组件对齐：统一走 app 文字色，避免暗色下仍落回 #0f172a */
+  /* 涓?Naive UI n-text depth銆佹棫缁勪欢瀵归綈锛氱粺涓€璧?app 鏂囧瓧鑹诧紝閬垮厤鏆楄壊涓嬩粛钀藉洖 #0f172a */
   --text-color-1: var(--app-text-primary);
   --text-color-2: var(--app-text-secondary);
   --text-color-3: var(--app-text-muted);
 
-  /* ── 背景色 ── */
+  /* 鈹€鈹€ 鑳屾櫙鑹?鈹€鈹€ */
   --app-page-bg: #eef1f6;
   --app-surface: #ffffff;
   --app-surface-raised: #ffffff;
   --app-surface-subtle: #f8fafc;
   --app-input-bg: #ffffff;
 
-  /* ── 边框 ── */
+  /* 鈹€鈹€ 杈规 鈹€鈹€ */
   --app-border: rgba(15, 23, 42, 0.09);
   --app-border-strong: rgba(15, 23, 42, 0.15);
   --app-divider: rgba(15, 23, 42, 0.06);
 
-  /* ── 阴影 ── */
+  /* 鈹€鈹€ 闃村奖 鈹€鈹€ */
   --app-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
   --app-shadow-md: 0 4px 16px rgba(15, 23, 42, 0.06);
   --app-shadow-lg: 0 8px 28px rgba(15, 23, 42, 0.08);
   --app-shadow-hover: 0 8px 24px rgba(15, 23, 42, 0.12);
 
-  /* ── 布局 ── */
+  /* 鈹€鈹€ 甯冨眬 鈹€鈹€ */
   --app-radius-sm: 8px;
   --app-radius-md: 10px;
   --app-radius-lg: 14px;
   --app-radius-xl: 20px;
   --app-transition: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* ── 面板专用 ── */
+  /* 鈹€鈹€ 闈㈡澘涓撶敤 鈹€鈹€ */
   --aitext-split-border: rgba(15, 23, 42, 0.07);
   --aitext-panel-muted: #f8fafc;
 
-  /* ── 字体 ── */
+  /* 鈹€鈹€ 瀛椾綋 鈹€鈹€ */
   --font-sans: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', 'Liberation Mono', monospace;
   --font-serif: 'Noto Serif SC', 'Source Han Serif CN', 'Songti SC', Georgia, serif;
 
-  /* ── 字号阶梯（最小 12px，确保可读性）── */
+  /* 鈹€鈹€ 瀛楀彿闃舵锛堟渶灏?12px锛岀‘淇濆彲璇绘€э級鈹€鈹€ */
   --font-size-xs: 12px;
   --font-size-sm: 13px;
   --font-size-base: 14px;
   --font-size-lg: 16px;
   --font-size-xl: 18px;
 
-  /* ── StatsTopBar 渐变 ── */
+  /* 鈹€鈹€ StatsTopBar 娓愬彉 鈹€鈹€ */
   --stats-bar-gradient: linear-gradient(135deg, #1f2937 0%, #334155 55%, #475569 100%);
 
-  /* 彩色顶栏上的文字与「药丸」图标底（与 --app-text-inverse 解耦：暗色主题里 inverse 是深色字，不能用在渐变条上） */
+  /* 褰╄壊椤舵爮涓婄殑鏂囧瓧涓庛€岃嵂涓搞€嶅浘鏍囧簳锛堜笌 --app-text-inverse 瑙ｈ€︼細鏆楄壊涓婚閲?inverse 鏄繁鑹插瓧锛屼笉鑳界敤鍦ㄦ笎鍙樻潯涓婏級 */
   --nav-hero-text: #ffffff;
   --nav-hero-text-muted: rgba(255, 255, 255, 0.86);
   --nav-hero-pill-bg-top: rgba(255, 255, 255, 0.26);
@@ -143,7 +143,7 @@ body {
   --nav-hero-pill-border: rgba(255, 255, 255, 0.32);
   --nav-hero-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset;
 
-  /* ── 组件交互态（Tab / 档案 / 运行时栏）── */
+  /* 鈹€鈹€ 缁勪欢浜や簰鎬侊紙Tab / 妗ｆ / 杩愯鏃舵爮锛夆攢鈹€ */
   --tab-track-bg: linear-gradient(135deg, var(--color-brand), var(--color-brand-hover));
   --tab-track-shadow: 0 2px 10px var(--color-brand-border), 0 1px 3px var(--color-brand-border);
   --tab-active-color: var(--app-text-inverse, #ffffff);
@@ -156,11 +156,11 @@ body {
   color-scheme: light;
 }
 
-/* ═══════════════════════════════════════════════════
-   暗色模式
-   ═══════════════════════════════════════════════════ */
+/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?
+   鏆楄壊妯″紡
+   鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?*/
 [data-theme='dark'] {
-  /* ── 品牌色（暗模式下略提亮）── */
+  /* 鈹€鈹€ 鍝佺墝鑹诧紙鏆楁ā寮忎笅鐣ユ彁浜級鈹€鈹€ */
   --color-brand: #60a5fa;
   --color-brand-hover: #93c5fd;
   --color-brand-pressed: #3b82f6;
@@ -168,56 +168,56 @@ body {
   --color-brand-light: rgba(96, 165, 250, 0.12);
   --color-brand-border: rgba(96, 165, 250, 0.22);
 
-  /* ── 黑金装饰色（暗模式下更耀眼）── */
+  /* 鈹€鈹€ 榛戦噾瑁呴グ鑹诧紙鏆楁ā寮忎笅鏇磋€€鐪硷級鈹€鈹€ */
   --color-gold: #e5b86e;
   --color-gold-light: #f5ddb5;
   --color-gold-dim: rgba(229, 184, 110, 0.12);
   --color-gold-border: rgba(229, 184, 110, 0.2);
   --color-gold-glow: rgba(229, 184, 110, 0.4);
 
-  /* ── 黑金主播限定色（暗模式：更温暖的金铜色调）── */
+  /* 鈹€鈹€ 榛戦噾涓绘挱闄愬畾鑹诧紙鏆楁ā寮忥細鏇存俯鏆栫殑閲戦摐鑹茶皟锛夆攢鈹€ */
   --color-anchor: #e8b84a;
   --color-anchor-light: #f5dba0;
   --color-anchor-dim: rgba(232, 184, 74, 0.1);
   --color-anchor-border: rgba(232, 184, 74, 0.2);
   --color-anchor-glow: rgba(232, 184, 74, 0.45);
 
-  /* ── 文字色 ── */
+  /* 鈹€鈹€ 鏂囧瓧鑹?鈹€鈹€ */
   --app-text-primary: #f3f4f6;
   --app-text-secondary: #d1d5db;
   --app-text-muted: #9ca3af;
   --app-text-inverse: #0f172a;
 
-  /* ── 组件交互态（Tab / 档案 / 运行时栏）── */
+  /* 鈹€鈹€ 缁勪欢浜や簰鎬侊紙Tab / 妗ｆ / 杩愯鏃舵爮锛夆攢鈹€ */
   --tab-track-bg: linear-gradient(135deg, var(--color-brand), var(--color-brand-hover));
   --tab-track-shadow: 0 2px 10px var(--color-brand-border), 0 1px 3px var(--color-brand-border);
   --tab-active-color: var(--app-text-inverse, #ffffff);
   --tab-inactive-color: var(--app-text-secondary, #94a3b8);
   --tab-inactive-hover-color: var(--app-text-primary, #e2e8f0);
 
-  /* ── 背景色（深色系，不要太深，符合美学）── */
+  /* 鈹€鈹€ 鑳屾櫙鑹诧紙娣辫壊绯伙紝涓嶈澶繁锛岀鍚堢編瀛︼級鈹€鈹€ */
   --app-page-bg: #121826;
   --app-surface: #1a2235;
   --app-surface-raised: #232d42;
   --app-surface-subtle: #161d2e;
   --app-input-bg: #161d2e;
 
-  /* ── 边框 ── */
+  /* 鈹€鈹€ 杈规 鈹€鈹€ */
   --app-border: rgba(148, 163, 184, 0.12);
   --app-border-strong: rgba(148, 163, 184, 0.2);
   --app-divider: rgba(148, 163, 184, 0.08);
 
-  /* ── 阴影 ── */
+  /* 鈹€鈹€ 闃村奖 鈹€鈹€ */
   --app-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
   --app-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
   --app-shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.35);
   --app-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
 
-  /* ── 面板专用 ── */
+  /* 鈹€鈹€ 闈㈡澘涓撶敤 鈹€鈹€ */
   --aitext-split-border: rgba(148, 163, 184, 0.1);
   --aitext-panel-muted: #161d2e;
 
-  /* ── StatsTopBar 渐变（暗色版：深靛蓝+微光）── */
+  /* 鈹€鈹€ StatsTopBar 娓愬彉锛堟殫鑹茬増锛氭繁闈涜摑+寰厜锛夆攢鈹€ */
   --stats-bar-gradient: linear-gradient(135deg, #161d2e 0%, #1e293b 50%, #334155 100%);
 
   --nav-hero-text: #f8fafc;
@@ -227,7 +227,7 @@ body {
   --nav-hero-pill-border: rgba(255, 255, 255, 0.22);
   --nav-hero-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset;
 
-  /* ── 语义色（暗模式：更亮的色值 + dim 改为极低不透明度）── */
+  /* 鈹€鈹€ 璇箟鑹诧紙鏆楁ā寮忥細鏇翠寒鐨勮壊鍊?+ dim 鏀逛负鏋佷綆涓嶉€忔槑搴︼級鈹€鈹€ */
   --color-success: #4ade80;
   --color-success-light: rgba(74, 222, 128, 0.14);
   --color-success-dim: rgba(74, 222, 128, 0.08);
@@ -247,12 +247,12 @@ body {
   color-scheme: dark;
 }
 
-/* ═══════════════════════════════════════════════════
-   黑金模式（主播限定色）— 奢华暗金风格
-   基于 dark 深色基底 + 金铜色调强调
-   ═══════════════════════════════════════════════════ */
+/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?
+   榛戦噾妯″紡锛堜富鎾檺瀹氳壊锛夆€?濂㈠崕鏆楅噾椋庢牸
+   鍩轰簬 dark 娣辫壊鍩哄簳 + 閲戦摐鑹茶皟寮鸿皟
+   鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?*/
 [data-theme='anchor'] {
-  /* ── 品牌色：金紫融合 ── */
+  /* 鈹€鈹€ 鍝佺墝鑹诧細閲戠传铻嶅悎 鈹€鈹€ */
   --color-brand: #c9a227;
   --color-brand-hover: #ddb930;
   --color-brand-pressed: #a88a1f;
@@ -260,52 +260,52 @@ body {
   --color-brand-light: rgba(201, 162, 39, 0.12);
   --color-brand-border: rgba(201, 162, 39, 0.2);
 
-  /* ── 黑金装饰色（更浓郁）── */
+  /* 鈹€鈹€ 榛戦噾瑁呴グ鑹诧紙鏇存祿閮侊級鈹€鈹€ */
   --color-gold: #f0c866;
   --color-gold-light: #f5ddb5;
   --color-gold-dim: rgba(240, 200, 102, 0.1);
   --color-gold-border: rgba(240, 200, 102, 0.18);
   --color-gold-glow: rgba(240, 200, 102, 0.35);
 
-  /* ── 主播限定色（核心品牌金）── */
+  /* 鈹€鈹€ 涓绘挱闄愬畾鑹诧紙鏍稿績鍝佺墝閲戯級鈹€鈹€ */
   --color-anchor: #d4a843;
   --color-anchor-light: #f5d77e;
   --color-anchor-dim: rgba(212, 168, 67, 0.1);
   --color-anchor-border: rgba(212, 168, 67, 0.22);
   --color-anchor-glow: rgba(212, 168, 67, 0.4);
 
-  /* ── 文字色（暖调暗色文字，更高对比度）── */
+  /* 鈹€鈹€ 鏂囧瓧鑹诧紙鏆栬皟鏆楄壊鏂囧瓧锛屾洿楂樺姣斿害锛夆攢鈹€ */
   --app-text-primary: #f0ead6;
   --app-text-secondary: #c4b99a;
   --app-text-muted: #8a8070;
   --app-text-inverse: #0a0c10;
 
-  /* ── 背景色（墨黑+微金底纹）── */
+  /* 鈹€鈹€ 鑳屾櫙鑹诧紙澧ㄩ粦+寰噾搴曠汗锛夆攢鈹€ */
   --app-page-bg: #0a0c10;
   --app-surface: #111620;
   --app-surface-raised: #181f2e;
   --app-surface-subtle: #0d1018;
   --app-input-bg: #0d1018;
 
-  /* ── 边框（金色调边框）── */
+  /* 鈹€鈹€ 杈规锛堥噾鑹茶皟杈规锛夆攢鈹€ */
   --app-border: rgba(201, 162, 39, 0.08);
   --app-border-strong: rgba(201, 162, 39, 0.14);
   --app-divider: rgba(201, 162, 39, 0.06);
 
-  /* ── 阴影（带金色光晕）── */
+  /* 鈹€鈹€ 闃村奖锛堝甫閲戣壊鍏夋檿锛夆攢鈹€ */
   --app-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
   --app-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35), 0 0 20px rgba(201, 162, 39, 0.04);
   --app-shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.4), 0 0 40px rgba(201, 162, 39, 0.06);
   --app-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 30px rgba(201, 162, 39, 0.08);
 
-  /* ── 面板专用 ── */
+  /* 鈹€鈹€ 闈㈡澘涓撶敤 鈹€鈹€ */
   --aitext-split-border: rgba(201, 162, 39, 0.1);
   --aitext-panel-muted: #0d1018;
 
-  /* ── StatsTopBar 渐变（黑金版：墨黑金边）── */
+  /* 鈹€鈹€ StatsTopBar 娓愬彉锛堥粦閲戠増锛氬ⅷ榛戦噾杈癸級鈹€鈹€ */
   --stats-bar-gradient: linear-gradient(135deg, #16130f 0%, #1f1a13 50%, #2a2318 100%);
 
-  /* 黑金模式顶部栏额外装饰：金色底边线 */
+  /* 榛戦噾妯″紡椤堕儴鏍忛澶栬楗帮細閲戣壊搴曡竟绾?*/
   --stats-bar-border-bottom: 1px solid rgba(212, 168, 67, 0.18);
 
   --nav-hero-text: #faf6ee;
@@ -318,7 +318,7 @@ body {
   color-scheme: dark;
 }
 
-/* 舒适主题：纸页。低饱和暖白，适合白天长时间写作和审稿。 */
+/* 鑸掗€備富棰橈細绾搁〉銆備綆楗卞拰鏆栫櫧锛岄€傚悎鐧藉ぉ闀挎椂闂村啓浣滃拰瀹＄銆?*/
 [data-theme='paper'] {
   --color-brand: #8b5e34;
   --color-brand-hover: #a16f43;
@@ -404,7 +404,7 @@ body {
   color-scheme: light;
 }
 
-/* 舒适主题：深海。避开纯黑，高对比但不刺眼，适合夜间沉浸写作。 */
+/* 鑸掗€備富棰橈細娣辨捣銆傞伩寮€绾粦锛岄珮瀵规瘮浣嗕笉鍒虹溂锛岄€傚悎澶滈棿娌夋蹈鍐欎綔銆?*/
 [data-theme='ocean'] {
   --color-brand: #76d1c8;
   --color-brand-hover: #9be1da;
@@ -490,11 +490,11 @@ body {
   color-scheme: dark;
 }
 
-/* ═══════════════════════════════════════════════════
-   通用组件样式（使用变量，自动适配亮/暗/黑金）
-   ═══════════════════════════════════════════════════ */
+/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?
+   閫氱敤缁勪欢鏍峰紡锛堜娇鐢ㄥ彉閲忥紝鑷姩閫傞厤浜?鏆?榛戦噾锛?
+   鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?*/
 
-/* 工作台 / 侧栏共用 */
+/* 宸ヤ綔鍙?/ 渚ф爮鍏辩敤 */
 .aitext-panel-surface {
   background: var(--aitext-panel-muted);
   border-left: 1px solid var(--aitext-split-border);
@@ -521,7 +521,7 @@ body {
   color: var(--app-text-muted);
 }
 
-/* Markdown 正文 */
+/* Markdown 姝ｆ枃 */
 .md-body {
   font-family: var(--font-sans);
   font-size: 14px;
@@ -554,7 +554,7 @@ body {
   color: var(--app-text-muted);
 }
 
-/* 标题 */
+/* 鏍囬 */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-sans);
   font-weight: 600;
@@ -562,7 +562,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--app-text-primary);
 }
 
-/* 小说正文阅读模式 */
+/* 灏忚姝ｆ枃闃呰妯″紡 */
 .novel-content {
   font-family: var(--font-serif);
   font-size: 16px;
@@ -573,7 +573,7 @@ h1, h2, h3, h4, h5, h6 {
 .novel-content p { text-indent: 2em; margin-bottom: 0.8em; }
 .novel-content p:first-child { text-indent: 0; }
 
-/* 代码块 */
+/* 浠ｇ爜鍧?*/
 .code-block, pre[class*='language-'] {
   font-family: var(--font-mono);
   font-size: 13px;
@@ -581,31 +581,31 @@ h1, h2, h3, h4, h5, h6 {
   tab-size: 2;
 }
 
-/* 表单元素 */
+/* 琛ㄥ崟鍏冪礌 */
 input, textarea, select { font-family: inherit; font-size: inherit; }
 button { font-family: inherit; }
 
-/* 数字/数据展示 */
+/* 鏁板瓧/鏁版嵁灞曠ず */
 .numeric, .data-value {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
-/* 拼音注音 */
+/* 鎷奸煶娉ㄩ煶 */
 ruby { ruby-align: center; }
 rt { font-size: 0.6em; color: var(--app-text-muted); }
 
-/* ═══════════════════════════════════════════════════
-   StatsTopBar — 使用变量渐变 + 主题装饰边框
-   ═══════════════════════════════════════════════════ */
+/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?
+   StatsTopBar 鈥?浣跨敤鍙橀噺娓愬彉 + 涓婚瑁呴グ杈规
+   鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?*/
 .stats-top-bar {
   background: var(--stats-bar-gradient);
   border-bottom: var(--stats-bar-border-bottom, 1px solid rgba(255, 255, 255, 0.08));
 }
 
-/* ═══════════════════════════════════════════════════
-   Home 页面 — 使用变量
-   ═══════════════════════════════════════════════════ */
+/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?
+   Home 椤甸潰 鈥?浣跨敤鍙橀噺
+   鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?*/
 .home-bg {
   background:
     radial-gradient(ellipse 110% 80% at 50% -30%, var(--color-brand-light), transparent 55%),
@@ -651,9 +651,9 @@ rt { font-size: 0.6em; color: var(--app-text-muted); }
   border-color: var(--color-brand-border);
 }
 
-/* ═══════════════════════════════════════════════════
-   GlobalLLMEntryButton Drawer — 使用统一变量
-   ═══════════════════════════════════════════════════ */
+/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?
+   GlobalLLMEntryButton Drawer 鈥?浣跨敤缁熶竴鍙橀噺
+   鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?*/
 .global-llm-drawer-title { color: var(--app-text-primary); }
 .global-llm-drawer-subtitle { color: var(--app-text-muted); }
 .global-llm-runtime-bar {
@@ -675,7 +675,7 @@ rt { font-size: 0.6em; color: var(--app-text-muted); }
   color: var(--runtime-mock-model-color);
 }
 
-/* 嵌入模型区域 */
+/* 宓屽叆妯″瀷鍖哄煙 */
 .embedding-section-title { color: var(--app-text-primary); }
 .embedding-section-desc { color: var(--app-text-muted); }
 .emb-mode-label { color: var(--app-text-muted); }
@@ -683,19 +683,19 @@ rt { font-size: 0.6em; color: var(--app-text-muted); }
 .emb-local-name { color: var(--color-success); }
 .emb-local-desc { color: var(--color-success); }
 
-/* ═══════════════════════════════════════════════════
-   SettingsPanel 右侧面板
-   ═══════════════════════════════════════════════════ */
+/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?
+   SettingsPanel 鍙充晶闈㈡澘
+   鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?*/
 .right-panel { background: var(--aitext-panel-muted); }
 
-/* ═══════════════════════════════════════════════════
-   主题切换过渡动画
-   ═══════════════════════════════════════════════════ */
+/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?
+   涓婚鍒囨崲杩囨浮鍔ㄧ敾
+   鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?*/
 
 /*
- * View Transition API（Chrome/Edge 111+）：
- * 截图旧页面 → 应用新主题 → 新旧画面交叉淡入淡出。
- * 不依赖 `*` 选择器，不与组件自身 transition 冲突。
+ * View Transition API锛圕hrome/Edge 111+锛夛細
+ * 鎴浘鏃ч〉闈?鈫?搴旂敤鏂颁富棰?鈫?鏂版棫鐢婚潰浜ゅ弶娣″叆娣″嚭銆?
+ * 涓嶄緷璧?`*` 閫夋嫨鍣紝涓嶄笌缁勪欢鑷韩 transition 鍐茬獊銆?
  */
 ::view-transition-old(root),
 ::view-transition-new(root) {
@@ -722,8 +722,8 @@ rt { font-size: 0.6em; color: var(--app-text-muted); }
 }
 
 /*
- * 降级方案（Firefox / Safari）：
- * 仅对关键属性加 transition，避免 `*` 选择器拖累性能。
+ * 闄嶇骇鏂规锛團irefox / Safari锛夛細
+ * 浠呭鍏抽敭灞炴€у姞 transition锛岄伩鍏?`*` 閫夋嫨鍣ㄦ嫋绱€ц兘銆?
  */
 .theme-transitioning {
   transition:
@@ -741,4 +741,199 @@ rt { font-size: 0.6em; color: var(--app-text-muted); }
     background-color 0.3s ease,
     color 0.3s ease,
     border-color 0.3s ease !important;
+}
+
+/* Cohere-inspired editorial command theme */
+:root {
+  --cohere-black: #000000;
+  --cohere-near-black: #17171c;
+  --cohere-green: #003c33;
+  --cohere-navy: #071829;
+  --cohere-blue: #1863dc;
+  --cohere-coral: #ff7759;
+  --cohere-soft-coral: #ffad9b;
+  --cohere-stone: #eeece7;
+  --cohere-pale-green: #edfce9;
+  --cohere-pale-blue: #f1f5ff;
+  --cohere-ink: #212121;
+  --cohere-muted: #93939f;
+  --cohere-slate: #75758a;
+  --cohere-hairline: #d9d9dd;
+  --cohere-border-light: #e5e7eb;
+
+  --color-brand: var(--cohere-near-black);
+  --color-brand-hover: var(--cohere-black);
+  --color-brand-pressed: var(--cohere-green);
+  --color-brand-suppl: var(--cohere-blue);
+  --color-brand-light: rgba(0, 60, 51, 0.07);
+  --color-brand-border: rgba(0, 60, 51, 0.16);
+
+  --app-page-bg: #ffffff;
+  --app-surface: #ffffff;
+  --app-surface-raised: #ffffff;
+  --app-surface-subtle: #fbfbfa;
+  --app-input-bg: #ffffff;
+  --app-text-primary: var(--cohere-ink);
+  --app-text-secondary: #45454d;
+  --app-text-muted: var(--cohere-muted);
+  --app-border: var(--cohere-hairline);
+  --app-border-strong: #bfc0c7;
+  --app-divider: var(--cohere-border-light);
+  --app-shadow-sm: none;
+  --app-shadow-md: none;
+  --app-shadow-lg: none;
+  --app-shadow-hover: none;
+  --app-radius-sm: 8px;
+  --app-radius-md: 16px;
+  --app-radius-lg: 22px;
+  --app-radius-xl: 30px;
+  --aitext-split-border: var(--cohere-hairline);
+  --aitext-panel-muted: #fbfbfa;
+  --stats-bar-gradient: linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
+  --nav-hero-text: var(--cohere-ink);
+  --nav-hero-text-muted: var(--cohere-slate);
+  --nav-hero-pill-bg-top: #ffffff;
+  --nav-hero-pill-bg-bottom: #ffffff;
+  --nav-hero-pill-border: var(--cohere-hairline);
+  --nav-hero-shadow: none;
+  --font-sans: 'Unica77 Cohere Web', Inter, Arial, ui-sans-serif, system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-display: 'CohereText', 'Space Grotesk', Inter, ui-sans-serif, system-ui, 'PingFang SC', sans-serif;
+  --font-mono: 'CohereMono', 'JetBrains Mono', Arial, ui-sans-serif, system-ui, monospace;
+}
+
+[data-theme='dark'],
+[data-theme='ocean'] {
+  --app-page-bg: #001f1b;
+  --app-surface: #071829;
+  --app-surface-raised: #0b2233;
+  --app-surface-subtle: #06131f;
+  --app-input-bg: #06131f;
+  --app-text-primary: #f7faf7;
+  --app-text-secondary: #cbd7d4;
+  --app-text-muted: #8fa39e;
+  --app-border: rgba(237, 252, 233, 0.16);
+  --app-border-strong: rgba(237, 252, 233, 0.26);
+  --app-divider: rgba(237, 252, 233, 0.10);
+  --aitext-split-border: rgba(237, 252, 233, 0.14);
+  --aitext-panel-muted: #06131f;
+  --stats-bar-gradient: linear-gradient(180deg, #003c33 0%, #003c33 100%);
+  --nav-hero-text: #ffffff;
+  --nav-hero-text-muted: rgba(255, 255, 255, 0.70);
+  --nav-hero-pill-bg-top: rgba(255, 255, 255, 0.07);
+  --nav-hero-pill-bg-bottom: rgba(255, 255, 255, 0.04);
+  --nav-hero-pill-border: rgba(255, 255, 255, 0.18);
+}
+
+[data-theme='paper'] {
+  --app-page-bg: #ffffff;
+  --app-surface: #ffffff;
+  --app-surface-subtle: #eeece7;
+  --aitext-panel-muted: #eeece7;
+  --color-brand: #17171c;
+  --color-brand-light: rgba(255, 119, 89, 0.10);
+  --color-brand-border: rgba(255, 119, 89, 0.22);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+h1, h2, h3, .title, .section-title, .work-title, .editor-title h3 {
+  font-family: var(--font-display);
+  font-weight: 400 !important;
+  letter-spacing: -0.03em;
+}
+
+.n-button.n-button--primary-type {
+  border-radius: 9999px !important;
+  font-weight: 500;
+}
+
+.n-button:not(.n-button--text-type):not(.n-button--quaternary-type) {
+  box-shadow: none !important;
+}
+
+.n-card {
+  border-radius: 22px !important;
+  box-shadow: none !important;
+}
+
+.n-tag {
+  border-radius: 9999px !important;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+/* Cohere component refinements */
+.n-tabs .n-tabs-tab {
+  font-weight: 400 !important;
+}
+
+.n-tabs .n-tabs-bar {
+  height: 1px !important;
+}
+
+.n-card.n-card--bordered {
+  border-color: var(--aitext-split-border, #d9d9dd) !important;
+}
+
+.n-alert {
+  border-radius: 16px !important;
+  border: 1px solid var(--aitext-split-border, #d9d9dd) !important;
+  box-shadow: none !important;
+}
+
+.n-input,
+.n-input .n-input-wrapper,
+.n-base-selection,
+.n-base-selection .n-base-selection-label {
+  box-shadow: none !important;
+}
+
+.n-input .n-input__border,
+.n-input .n-input__state-border,
+.n-base-selection .n-base-selection__border,
+.n-base-selection .n-base-selection__state-border {
+  border-color: var(--aitext-split-border, #d9d9dd) !important;
+}
+
+.n-input.n-input--focus .n-input__state-border,
+.n-base-selection.n-base-selection--active .n-base-selection__state-border {
+  border-color: #9b60aa !important;
+  box-shadow: none !important;
+}
+
+.n-modal .n-card {
+  border: 1px solid var(--aitext-split-border, #d9d9dd) !important;
+}
+
+.n-button--tertiary-type,
+.n-button--secondary-type,
+.n-button--quaternary-type {
+  color: var(--app-text-secondary, #575760) !important;
+}
+
+.n-button--tertiary-type:hover,
+.n-button--secondary-type:hover,
+.n-button--quaternary-type:hover {
+  background: var(--cohere-stone, #eeece7) !important;
+  color: var(--cohere-ink, #212121) !important;
+}
+
+[data-theme='dark'] .n-button--tertiary-type:hover,
+[data-theme='dark'] .n-button--secondary-type:hover,
+[data-theme='dark'] .n-button--quaternary-type:hover,
+[data-theme='ocean'] .n-button--tertiary-type:hover,
+[data-theme='ocean'] .n-button--secondary-type:hover,
+[data-theme='ocean'] .n-button--quaternary-type:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+}
+
+@media (max-width: 1024px) {
+  .workbench-inner {
+    padding: 10px !important;
+  }
 }

@@ -1,20 +1,20 @@
-<template>
+﻿<template>
   <n-modal
     v-model:show="show"
     preset="card"
     style="width: min(920px, 96vw)"
     :mask-closable="false"
     :segmented="{ content: true, footer: 'soft' }"
-    :title="`规划章节 — ${actTitle}`"
+    :title="`规划章节 · ${actTitle}`"
   >
     <template #header-extra>
-      <n-text depth="3" style="font-size: 12px">AI 为本幕生成章节大纲，确认后写入结构树</n-text>
+      <n-text depth="3" style="font-size: 12px">AI 为本幕生成章节蓝图，确认后写入结构树</n-text>
     </template>
 
-    <!-- 生成前：配置 -->
+    <!-- 鐢熸垚鍓嶏細閰嶇疆 -->
     <n-space v-if="!generated" vertical :size="16">
       <n-alert type="info" :show-icon="true">
-        AI 将根据本幕的叙事目标与 Bible 信息，自动为每章生成标题和大纲。生成后可编辑再确认。
+        AI 将根据本幕叙事目标与 Bible 信息，为每章生成标题、大纲和蓝图。生成后可编辑再确认。
       </n-alert>
 
       <n-form-item label="本幕章节数" :show-feedback="false">
@@ -34,11 +34,10 @@
       </n-space>
     </n-space>
 
-    <!-- 生成后：预览 + 编辑 -->
+    <!-- 鐢熸垚鍚庯細棰勮 + 缂栬緫 -->
     <n-space v-else vertical :size="16">
       <n-alert type="success" :show-icon="true">
-        已生成 {{ chapters.length }} 章规划，可在下方直接修改标题或大纲后确认。
-      </n-alert>
+        已生成 {{ chapters.length }} 章规划，可在下方修改标题、大纲和蓝图后确认。</n-alert>
 
       <n-card v-if="actBlueprint" size="small" embedded>
         <n-space vertical :size="8">
@@ -72,31 +71,31 @@
             <n-space vertical :size="6">
               <n-input
                 v-model:value="ch.title"
-                placeholder="章节标题"
+                placeholder="绔犺妭鏍囬"
                 :disabled="confirming"
                 size="small"
               />
               <n-input
                 v-model:value="ch.outline"
                 type="textarea"
-                placeholder="本章大纲"
+                placeholder="鏈珷澶х翰"
                 :autosize="{ minRows: 2, maxRows: 5 }"
                 :disabled="confirming"
                 size="small"
               />
               <n-grid :cols="3" :x-gap="8" :y-gap="6" responsive="screen">
-                <n-form-item-gi label="本章功能" :show-feedback="false">
+                <n-form-item-gi label="鏈珷鍔熻兘" :show-feedback="false">
                   <n-input v-model:value="ch.blueprint.narrative_function" placeholder="setup/rise/cooldown..." size="small" :disabled="confirming" />
                 </n-form-item-gi>
-                <n-form-item-gi label="目标张力" :show-feedback="false">
+                <n-form-item-gi label="鐩爣寮犲姏" :show-feedback="false">
                   <n-input-number v-model:value="ch.blueprint.target_tension" :min="1" :max="10" size="small" :disabled="confirming" style="width: 100%" />
                 </n-form-item-gi>
-                <n-form-item-gi label="张力阶段" :show-feedback="false">
-                  <n-input v-model:value="ch.blueprint.tension_phase" placeholder="铺垫/升温/爆点/余波" size="small" :disabled="confirming" />
+                <n-form-item-gi label="寮犲姏闃舵" :show-feedback="false">
+                  <n-input v-model:value="ch.blueprint.tension_phase" placeholder="閾哄灚/鍗囨俯/鐖嗙偣/浣欐尝" size="small" :disabled="confirming" />
                 </n-form-item-gi>
               </n-grid>
               <n-grid :cols="2" :x-gap="8" :y-gap="6" responsive="screen">
-                <n-form-item-gi label="必写事件" :show-feedback="false">
+                <n-form-item-gi label="蹇呭啓浜嬩欢" :show-feedback="false">
                   <n-input
                     :value="listToText(ch.blueprint.must_happen)"
                     type="textarea"
@@ -106,7 +105,7 @@
                     @update:value="(v: string) => ch.blueprint.must_happen = textToList(v)"
                   />
                 </n-form-item-gi>
-                <n-form-item-gi label="禁写/禁提前泄露" :show-feedback="false">
+                <n-form-item-gi label="禁写 / 禁提前泄露" :show-feedback="false">
                   <n-input
                     :value="listToText(ch.blueprint.must_not_happen)"
                     type="textarea"
@@ -211,7 +210,7 @@ async function generate() {
     }
     generated.value = true
   } catch (e: any) {
-    message.error(e?.response?.data?.detail || '生成失败，请检查 API Key')
+    message.error(e?.response?.data?.detail || '鐢熸垚澶辫触锛岃妫€鏌?API Key')
   } finally {
     loading.value = false
   }
@@ -221,11 +220,11 @@ async function confirm() {
   confirming.value = true
   try {
     await planningApi.confirmActChapters(props.actId, { chapters: chapters.value.map(toConfirmPayload) })
-    message.success('章节已写入结构树')
+    message.success('绔犺妭宸插啓鍏ョ粨鏋勬爲')
     emit('confirmed')
     emit('update:show', false)
   } catch (e: any) {
-    message.error(e?.response?.data?.detail || '保存失败')
+    message.error(e?.response?.data?.detail || '淇濆瓨澶辫触')
   } finally {
     confirming.value = false
   }
@@ -285,7 +284,7 @@ function toConfirmPayload(ch: ChapterDraft) {
 
 function textToList(value: unknown): string[] {
   if (Array.isArray(value)) return value.map(String).map(v => v.trim()).filter(Boolean)
-  if (typeof value === 'string') return value.split(/\n|；|;/).map(v => v.trim()).filter(Boolean)
+  if (typeof value === 'string') return value.split(/\n|锛泑;/).map(v => v.trim()).filter(Boolean)
   if (value == null) return []
   return [String(value).trim()].filter(Boolean)
 }
@@ -294,3 +293,75 @@ function listToText(value: unknown): string {
   return textToList(value).join('\n')
 }
 </script>
+
+<style scoped>
+:deep(.n-card-header) {
+  padding: 26px 30px 14px;
+}
+
+:deep(.n-card-header__main) {
+  font-family: var(--font-display, sans-serif);
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
+}
+
+:deep(.n-card__content) {
+  padding: 20px 30px 26px;
+}
+
+:deep(.n-card__footer) {
+  border-top: 1px solid var(--aitext-split-border, #d9d9dd);
+}
+
+:deep(.n-alert) {
+  background: var(--cohere-pale-blue, #f1f5ff);
+  color: var(--app-text-secondary, #45454d);
+}
+
+:deep(.n-form-item-label) {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--app-text-muted, #93939f);
+}
+
+:deep(.n-card.n-card--embedded) {
+  background: var(--cohere-stone, #eeece7) !important;
+  border-radius: 22px !important;
+  border: 0 !important;
+}
+
+:deep(.n-scrollbar .n-card) {
+  border-radius: 0 !important;
+  border: 0 !important;
+  border-top: 1px solid var(--aitext-split-border, #d9d9dd) !important;
+  background: transparent !important;
+}
+
+:deep(.n-scrollbar .n-card:first-child) {
+  border-top: 0 !important;
+}
+
+:deep(.n-scrollbar .n-card__content) {
+  padding: 22px 0 !important;
+}
+
+:deep(.n-input),
+:deep(.n-input .n-input-wrapper),
+:deep(.n-input-number) {
+  border-radius: 8px;
+}
+
+:deep(.n-tag) {
+  background: rgba(255, 119, 89, 0.10);
+  border-color: var(--cohere-soft-coral, #ffad9b);
+  color: var(--cohere-ink, #212121);
+}
+</style>
+
+
+
+

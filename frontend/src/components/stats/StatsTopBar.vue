@@ -272,25 +272,23 @@ onMounted(loadStats)
    使用 CSS 变量，自动适配亮/暗主题
    ═══════════════════════════════════════════════════ */
 .stats-top-bar {
-  height: 64px;
+  height: 72px;
   background: var(--stats-bar-gradient);
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 32px;
   color: var(--nav-hero-text, #ffffff);
   position: relative;
-  gap: 16px;
+  gap: 28px;
   min-width: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  border-bottom: 1px solid var(--app-border, rgba(255, 255, 255, 0.08));
-  box-shadow:
-    var(--app-shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08)),
-    0 4px 16px var(--color-brand-border, rgba(79, 70, 229, 0.08));
+  border-bottom: 1px solid var(--aitext-split-border, #d9d9dd);
+  box-shadow: none;
 }
 
 /* 左侧：AI 控制台入口 */
@@ -320,26 +318,27 @@ onMounted(loadStats)
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 14px;
-  border-radius: var(--app-radius-md);
+  padding: 10px 18px;
+  border-radius: 9999px;
   cursor: pointer;
   background: var(--nav-hero-pill-bg-top, rgba(255, 255, 255, 0.16));
   border: 1px solid var(--nav-hero-pill-border, rgba(255, 255, 255, 0.28));
   color: var(--nav-hero-text, #ffffff);
   transition: all var(--app-transition);
   white-space: nowrap;
-  box-shadow: var(--nav-hero-shadow);
+  box-shadow: none;
   user-select: none;
 }
 
 .ai-tools-trigger:hover {
-  background: rgba(255, 255, 255, 0.24);
+  background: var(--cohere-near-black, #17171c);
+  color: #ffffff;
 }
 
 .ai-tools-label {
   font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-weight: 500;
+  letter-spacing: 0;
 }
 
 /* 中间：统计数据 */
@@ -350,7 +349,7 @@ onMounted(loadStats)
   flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 0;
   min-width: 0;
   z-index: 1;
   overflow-x: auto;
@@ -371,13 +370,14 @@ onMounted(loadStats)
   flex: 0 0 auto;
   text-align: center;
   cursor: help;
-  padding: 4px 10px;
-  border-radius: var(--app-radius-sm);
+  padding: 0 18px;
+  border-left: 1px solid var(--aitext-split-border, #d9d9dd);
+  border-radius: 0;
   transition: background 0.2s ease;
 }
 
 .stat-item:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: transparent;
 }
 
 .stat-content {
@@ -388,25 +388,28 @@ onMounted(loadStats)
 }
 
 .stat-label {
-  font-size: 12px;
-  opacity: 0.92;
-  font-weight: 600;
-  letter-spacing: 0.03em;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  opacity: 1;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   white-space: nowrap;
   color: var(--nav-hero-text-muted, rgba(255, 255, 255, 0.86));
 }
 
 .stat-value {
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
+  font-family: var(--font-display, sans-serif);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  line-height: 1;
   color: var(--nav-hero-text, #ffffff);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  text-shadow: none;
 }
 
 .stat-item:hover .stat-value {
-  transform: scale(1.04);
+  transform: none;
   transition: transform 0.2s ease;
 }
 
@@ -429,14 +432,14 @@ onMounted(loadStats)
   cursor: pointer;
   opacity: 0.9;
   transition: all 0.18s ease;
-  border-radius: var(--app-radius-sm);
+  border-radius: 9999px;
   color: inherit;
 }
 
 .action-trigger:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.16);
-  transform: rotate(45deg);
+  background: var(--cohere-stone, #eeece7);
+  transform: none;
 }
 
 /* 右侧：设置触发器 */
@@ -450,14 +453,14 @@ onMounted(loadStats)
   cursor: pointer;
   opacity: 0.9;
   transition: all 0.18s ease;
-  border-radius: var(--app-radius-sm);
+  border-radius: 9999px;
   color: inherit;
 }
 
 .settings-trigger:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.16);
-  transform: rotate(45deg);
+  background: var(--cohere-stone, #eeece7);
+  transform: none;
 }
 
 .dropdown-item-icon {

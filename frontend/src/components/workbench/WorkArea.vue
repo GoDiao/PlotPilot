@@ -1747,3 +1747,100 @@ defineExpose({ ensureAssistedMode })
   border-top: 1px solid var(--border-color);
 }
 </style>
+
+<style scoped>
+.work-header {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: end !important;
+  gap: 28px !important;
+  min-height: 190px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.05), transparent),
+    var(--cohere-green, #003c33) !important;
+  color: #fff;
+  border-bottom: 0 !important;
+}
+.work-title-wrap::before {
+  content: 'PROJECT / NOVEL COMMAND CENTER';
+  display: block;
+  margin-bottom: 18px;
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.62);
+}
+.work-title {
+  max-width: 760px;
+  color: #fff !important;
+  font-size: clamp(44px, 5vw, 78px) !important;
+  line-height: 0.9 !important;
+  letter-spacing: -0.07em !important;
+}
+.work-sub {
+  color: rgba(255,255,255,0.62) !important;
+}
+.work-mode-switch {
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(7,24,41,0.72);
+}
+.work-mode-switch::before {
+  content: 'Creation Mode';
+  display: block;
+  margin-bottom: 10px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.58);
+}
+@media (max-width: 980px) {
+  .work-header { grid-template-columns: 1fr !important; }
+  .work-mode-switch { width: 100%; }
+}
+</style>
+
+<style scoped>
+.work-body {
+  overflow: auto !important;
+}
+.managed-stack {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding-bottom: 24px;
+}
+.managed-autopilot {
+  flex-shrink: 0 !important;
+}
+.managed-monitor {
+  flex: 0 0 auto !important;
+  min-height: 520px !important;
+  overflow: visible !important;
+}
+.managed-monitor :deep(.autopilot-dashboard) {
+  max-height: none !important;
+  overflow: visible !important;
+}
+.work-header {
+  min-height: 140px !important;
+  padding: 18px 22px !important;
+}
+.work-title {
+  font-size: clamp(34px, 4vw, 56px) !important;
+}
+.work-title-wrap::before {
+  margin-bottom: 10px !important;
+}
+.work-mode-switch {
+  padding: 12px 14px !important;
+}
+.work-mode-switch::before {
+  margin-bottom: 6px !important;
+}
+.autopilot-container {
+  padding: 14px 20px !important;
+}
+</style>

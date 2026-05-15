@@ -120,8 +120,9 @@ watch(activeTab, (tab) => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--aitext-panel-muted);
-  border-left: 1px solid var(--aitext-split-border);
+  background: var(--app-surface);
+  border: 1px solid var(--aitext-split-border);
+  border-radius: 22px;
 }
 
 /* 当前章节上下文提示条 */
@@ -129,7 +130,7 @@ watch(activeTab, (tab) => {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 12px;
+  padding: 14px 18px;
   background: var(--app-surface);
   border-bottom: 1px solid var(--aitext-split-border);
   flex-shrink: 0;
@@ -138,7 +139,10 @@ watch(activeTab, (tab) => {
 }
 
 .chapter-context-label {
-  font-weight: 600;
+  font-family: var(--font-mono, monospace);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--app-text-secondary);
 }
 
@@ -150,11 +154,17 @@ watch(activeTab, (tab) => {
 }
 
 .settings-tabs :deep(.n-tabs-nav) {
-  padding: 0 8px;
+  padding: 0 16px;
   background: var(--app-surface);
   border-bottom: 1px solid var(--aitext-split-border);
   overflow-x: auto;
   scrollbar-width: none;
+}
+
+.settings-tabs :deep(.n-tabs-tab) {
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  letter-spacing: 0.04em;
 }
 .settings-tabs :deep(.n-tabs-nav::-webkit-scrollbar) {
   display: none;
