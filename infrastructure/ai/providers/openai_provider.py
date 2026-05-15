@@ -78,6 +78,8 @@ class OpenAIProvider(BaseProvider):
             return await self._generate_via_chat(prompt, config)
         except RuntimeError:
             raise
+        except ValueError:
+            raise
         except Exception as e:
             raise RuntimeError(f"Failed to generate text: {str(e)}") from e
 
@@ -94,8 +96,29 @@ class OpenAIProvider(BaseProvider):
                 "OpenAI-compatible response returned empty non-stream content; "
                 "falling back to streaming aggregation"
             )
-            content, token_usage = await self._generate_via_stream(request_kwargs)
-            return GenerationResult(content=content, token_usage=token_usage)
+            try:
+                content, token_usage = await self._generate_via_stream(request_kwargs)
+                return GenerationResult(content=content, token_usage=token_usage)
+            except RuntimeError as stream_error:
+                if "empty content" not in str(stream_error):
+                    raise
+                logger.warning(
+                    "OpenAI-compatible streaming fallback also returned empty content; "
+                    "retrying one final non-stream request"
+                )
+                retry_response = await self.async_client.chat.completions.create(**request_kwargs)
+                retry_content = self._extract_text_from_response(retry_response)
+                if not retry_content:
+                    raise RuntimeError("API returned empty content after non-stream/stream/non-stream fallbacks") from stream_error
+                retry_input_tokens = retry_response.usage.prompt_tokens if retry_response.usage else 0
+                retry_output_tokens = retry_response.usage.completion_tokens if retry_response.usage else 0
+                return GenerationResult(
+                    content=retry_content,
+                    token_usage=TokenUsage(
+                        input_tokens=retry_input_tokens,
+                        output_tokens=retry_output_tokens,
+                    ),
+                )
 
         input_tokens = response.usage.prompt_tokens if response.usage else 0
         output_tokens = response.usage.completion_tokens if response.usage else 0

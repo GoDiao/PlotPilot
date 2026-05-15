@@ -31,6 +31,78 @@
         </n-card>
 
         <!-- 节拍规划 -->
+        <n-card v-if="hasChapterBlueprint" size="small" :bordered="true" class="cc-card-blueprint">
+          <template #header>
+            <span class="card-title">📘 本章蓝图</span>
+          </template>
+          <n-space vertical :size="10">
+            <div class="blueprint-summary-grid">
+              <div v-if="chapterBlueprint?.narrative_function" class="blueprint-summary-item">
+                <span class="blueprint-label">章节功能</span>
+                <strong>{{ chapterBlueprint.narrative_function }}</strong>
+              </div>
+              <div v-if="chapterBlueprint?.target_tension" class="blueprint-summary-item">
+                <span class="blueprint-label">目标张力</span>
+                <n-tag size="small" :type="tensionTagType(chapterBlueprint.target_tension)">
+                  {{ chapterBlueprint.target_tension }}/10
+                </n-tag>
+              </div>
+              <div v-if="chapterBlueprint?.tension_phase" class="blueprint-summary-item">
+                <span class="blueprint-label">张力阶段</span>
+                <strong>{{ chapterBlueprint.tension_phase }}</strong>
+              </div>
+              <div v-if="chapterBlueprint?.pov" class="blueprint-summary-item">
+                <span class="blueprint-label">POV</span>
+                <strong>{{ chapterBlueprint.pov }}</strong>
+              </div>
+            </div>
+
+            <n-descriptions :column="1" label-placement="top" size="small">
+              <n-descriptions-item v-if="chapterBlueprint?.outline" label="蓝图大纲">
+                <n-text class="blueprint-text">{{ chapterBlueprint.outline }}</n-text>
+              </n-descriptions-item>
+              <n-descriptions-item v-if="chapterBlueprintList('must_happen').length" label="必写事件">
+                <div class="blueprint-chip-list">
+                  <n-tag v-for="item in chapterBlueprintList('must_happen')" :key="item" size="small" type="success">
+                    {{ item }}
+                  </n-tag>
+                </div>
+              </n-descriptions-item>
+              <n-descriptions-item v-if="chapterBlueprintList('must_not_happen').length" label="禁写事项">
+                <div class="blueprint-chip-list">
+                  <n-tag v-for="item in chapterBlueprintList('must_not_happen')" :key="item" size="small" type="warning">
+                    {{ item }}
+                  </n-tag>
+                </div>
+              </n-descriptions-item>
+              <n-descriptions-item v-if="chapterBlueprint?.handoff_to_next" label="章末承接">
+                <n-text class="blueprint-text">{{ chapterBlueprint.handoff_to_next }}</n-text>
+              </n-descriptions-item>
+              <n-descriptions-item v-if="chapterBlueprintList('characters').length" label="登场角色">
+                <div class="blueprint-chip-list">
+                  <n-tag v-for="item in chapterBlueprintList('characters')" :key="item" size="small">
+                    {{ item }}
+                  </n-tag>
+                </div>
+              </n-descriptions-item>
+              <n-descriptions-item v-if="chapterBlueprintList('locations').length" label="地点">
+                <div class="blueprint-chip-list">
+                  <n-tag v-for="item in chapterBlueprintList('locations')" :key="item" size="small" type="info">
+                    {{ item }}
+                  </n-tag>
+                </div>
+              </n-descriptions-item>
+              <n-descriptions-item v-if="chapterBlueprintList('foreshadowing_actions').length" label="伏笔动作">
+                <div class="blueprint-chip-list">
+                  <n-tag v-for="item in chapterBlueprintList('foreshadowing_actions')" :key="item" size="small" type="error">
+                    {{ item }}
+                  </n-tag>
+                </div>
+              </n-descriptions-item>
+            </n-descriptions>
+          </n-space>
+        </n-card>
+
         <n-card v-if="showBeatsCard" size="small" :bordered="true">
           <template #header>
             <span class="card-title">🎬 节拍规划</span>
@@ -136,7 +208,7 @@ import { ref, watch, onMounted, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useWorkbenchRefreshStore } from '../../stores/workbenchRefreshStore'
 import { planningApi } from '../../api/planning'
-import type { StoryNode } from '../../api/planning'
+import type { ChapterBlueprint, StoryNode } from '../../api/planning'
 import { knowledgeApi } from '../../api/knowledge'
 import type { ChapterSummary } from '../../api/knowledge'
 import { bibleApi, type CharacterDTO } from '../../api/bible'
@@ -177,6 +249,35 @@ const planMoodLine = computed(() => {
   if (Array.isArray(m.moods) && m.moods.length) return m.moods.join('、')
   return ''
 })
+
+const chapterBlueprint = computed<ChapterBlueprint | null>(() => {
+  const raw = chapterPlan.value?.metadata?.blueprint
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+  return raw as ChapterBlueprint
+})
+
+const hasChapterBlueprint = computed(() => {
+  const blueprint = chapterBlueprint.value
+  if (!blueprint) return false
+  return Object.values(blueprint).some(value => {
+    if (Array.isArray(value)) return value.some(item => String(item || '').trim())
+    if (typeof value === 'number') return Number.isFinite(value)
+    return String(value ?? '').trim().length > 0
+  })
+})
+
+function chapterBlueprintList(key: keyof ChapterBlueprint): string[] {
+  const value = chapterBlueprint.value?.[key]
+  if (!Array.isArray(value)) return []
+  return value.map(item => String(item || '').trim()).filter(Boolean)
+}
+
+function tensionTagType(value: number): 'success' | 'warning' | 'error' | 'info' | 'default' {
+  if (value >= 8) return 'error'
+  if (value >= 6) return 'warning'
+  if (value >= 3) return 'info'
+  return 'success'
+}
 
 const BEAT_LINE_CAP = 48
 /** 与后端 chapter_narrative_sync._beats_from_structure_outline 一致：先按换行，再按句读拆，避免一整段只算一条节拍 */
@@ -414,6 +515,45 @@ onMounted(async () => {
 .card-title {
   font-size: 13px;
   font-weight: 600;
+}
+
+.cc-card-blueprint {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.06), rgba(99, 102, 241, 0.04));
+  border-color: rgba(99, 102, 241, 0.16);
+}
+
+.blueprint-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.blueprint-summary-item {
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+}
+
+.blueprint-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--n-text-color-3);
+  font-size: 11px;
+}
+
+.blueprint-text {
+  display: block;
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.blueprint-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 /* 节拍列表 */

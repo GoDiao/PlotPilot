@@ -70,6 +70,39 @@ export interface ActChaptersRequest {
   chapter_count?: number
 }
 
+export interface ChapterBlueprint {
+  narrative_function?: string
+  target_tension?: number
+  tension_phase?: string
+  outline?: string
+  must_happen?: string[]
+  must_not_happen?: string[]
+  handoff_to_next?: string
+  pov?: string
+  characters?: string[]
+  locations?: string[]
+  foreshadowing_actions?: string[]
+  [key: string]: unknown
+}
+
+export interface ActBlueprint {
+  synopsis?: string
+  narrative_goal?: string
+  core_conflict?: string
+  character_arc?: string
+  tension_curve?: {
+    opening?: number
+    peak?: number
+    ending?: number
+    spike_chapters?: string[]
+    cooldown_chapters?: string[]
+    [key: string]: unknown
+  }
+  handoff_to_next?: string
+  must_not_break?: string[]
+  [key: string]: unknown
+}
+
 export interface ContinuePlanningRequest {
   current_chapter: number
 }

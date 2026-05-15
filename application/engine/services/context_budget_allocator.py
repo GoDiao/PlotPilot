@@ -396,6 +396,16 @@ class ContextBudgetAllocator:
             tokens=self.estimate_tokens(act_summary),
             priority=100,
         )
+
+        chapter_blueprint = self._get_chapter_blueprint_context(novel_id, chapter_number)
+        slots["chapter_blueprint"] = ContextSlot(
+            name="本章写作蓝图",
+            tier=PriorityTier.T0_CRITICAL,
+            content=chapter_blueprint,
+            tokens=self.estimate_tokens(chapter_blueprint),
+            max_tokens=1800,
+            priority=105,
+        )
         
         # 2. 待回收伏笔（绝对优先级）
         foreshadowing_content = self._get_pending_foreshadowings(novel_id, chapter_number)
@@ -1351,6 +1361,66 @@ class ContextBudgetAllocator:
             logger.warning(f"获取最近章节失败: {e}")
         
         return ""
+
+    def _get_chapter_blueprint_context(self, novel_id: str, chapter_number: int) -> str:
+        """读取 story_nodes.metadata.blueprint，作为本章最高优先级写作蓝图。"""
+        if not self.story_node_repo:
+            return ""
+        try:
+            tree = self.story_node_repo.get_tree(novel_id)
+            chapter_node = next(
+                (
+                    n for n in tree.nodes
+                    if n.node_type.value == "chapter" and n.number == chapter_number
+                ),
+                None,
+            )
+            if not chapter_node:
+                return ""
+            chapter_bp = (chapter_node.metadata or {}).get("blueprint") or {}
+            if not isinstance(chapter_bp, dict):
+                chapter_bp = {}
+
+            act_bp: Dict[str, Any] = {}
+            if chapter_node.parent_id:
+                act_node = next((n for n in tree.nodes if n.id == chapter_node.parent_id), None)
+                raw_act_bp = ((act_node.metadata or {}).get("blueprint") if act_node else {}) or {}
+                if isinstance(raw_act_bp, dict):
+                    act_bp = raw_act_bp
+
+            lines = ["【本章写作蓝图（Authority Lock，必须优先遵守）】"]
+            if act_bp:
+                if act_bp.get("synopsis"):
+                    lines.append(f"本幕梗概：{act_bp.get('synopsis')}")
+                if act_bp.get("narrative_goal"):
+                    lines.append(f"本幕目标：{act_bp.get('narrative_goal')}")
+                if act_bp.get("core_conflict"):
+                    lines.append(f"本幕核心冲突：{act_bp.get('core_conflict')}")
+                if act_bp.get("handoff_to_next"):
+                    lines.append(f"本幕交接：{act_bp.get('handoff_to_next')}")
+
+            lines.append(f"本章标题：{chapter_node.title}")
+            lines.append(f"本章大纲：{chapter_bp.get('outline') or chapter_node.outline or ''}")
+            if chapter_bp.get("narrative_function"):
+                lines.append(f"本章功能：{chapter_bp.get('narrative_function')}")
+            if chapter_bp.get("target_tension"):
+                lines.append(f"目标张力：{chapter_bp.get('target_tension')}/10（按计划执行，不要盲目追高）")
+            if chapter_bp.get("tension_phase"):
+                lines.append(f"张力阶段：{chapter_bp.get('tension_phase')}")
+            for key, label in [
+                ("must_happen", "必须发生"),
+                ("must_not_happen", "不得发生/不得提前泄露"),
+                ("foreshadowing_actions", "伏笔动作"),
+            ]:
+                values = chapter_bp.get(key) or []
+                if values:
+                    lines.append(f"{label}：" + "；".join(str(v) for v in values))
+            if chapter_bp.get("handoff_to_next"):
+                lines.append(f"章末交接：{chapter_bp.get('handoff_to_next')}")
+            return "\n".join(line for line in lines if str(line).strip())
+        except Exception as e:
+            logger.warning(f"读取章节蓝图失败: {e}")
+            return ""
     
     def _get_vector_recall(
         self,

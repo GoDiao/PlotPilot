@@ -819,9 +819,10 @@ class AutoNovelGenerationWorkflow:
 
         beat_mode = bool((beat_prompt or "").strip())
         prior_in_chapter = format_prior_draft_for_prompt(chapter_draft_so_far)
-        # 字数控制：硬性上限，超出将被截断
+        # 字数控制：分节拍时给目标区间，而不是提示“最多/精炼”。
+        # 全托管短章的核心诱因之一就是把目标字数表达成硬上限。
         length_rule = (
-            f"7. 【硬性字数上限】本段最多 {beat_target_words} 字，超出将被截断，请精炼叙述。"
+            f"7. 【本段目标篇幅】本段约 {beat_target_words} 字，可上下浮动 20%；不要少写成梗概，必须展开成完整正文场景。"
             if beat_target_words
             else ("7. 章节长度：3000-4000字" if not beat_mode else "7. 按下方节拍说明控制篇幅，勿写章节标题")
         )
@@ -897,10 +898,14 @@ class AutoNovelGenerationWorkflow:
         if beat_mode:
             bi = beat_index if beat_index is not None else 0
             tb = total_beats if total_beats is not None else 1
+            expansion_guard = (
+                "本节拍必须写成小说正文，不要写成提纲、摘要或过场说明；"
+                "如果人物动作、对话、环境与心理尚未展开，不要提前收束。"
+            )
             beat_tail = (
-                "本段只写该节拍对应正文，紧接上文已写正文之后继续，衔接自然。"
+                "本段只写该节拍对应正文，紧接上文已写正文之后继续，衔接自然。" + expansion_guard
                 if prior_in_chapter
-                else "本段只写该节拍对应正文，与全章其它节拍情节连贯。"
+                else "本段只写该节拍对应正文，与全章其它节拍情节连贯。" + expansion_guard
             )
             user_message += f"""
 

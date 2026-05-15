@@ -36,3 +36,7 @@ class TensionDiagnosis:
     tension_level: str  # low/medium/high
     missing_elements: List[str]
     suggestions: List[str]
+    target_tension: Optional[int] = None
+    target_tension_source: Optional[str] = None
+    planned_function: Optional[str] = None
+    tension_phase: Optional[str] = None

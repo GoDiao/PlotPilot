@@ -12,7 +12,11 @@ from application.engine.dtos.scene_director_dto import (
 )
 from application.engine.services.scene_director_service import SceneDirectorService
 from application.engine.services.context_builder import ContextBuilder
-from interfaces.api.dependencies import get_scene_director_service, get_context_builder
+from interfaces.api.dependencies import (
+    get_chapter_quality_gate_service,
+    get_context_builder,
+    get_scene_director_service,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +56,7 @@ def retrieve_context(
     novel_id: str,
     body: ContextRetrieveRequest,
     builder: ContextBuilder = Depends(get_context_builder),
+    gate_service=Depends(get_chapter_quality_gate_service),
 ):
     """检索分层上下文
 
@@ -76,11 +81,23 @@ def retrieve_context(
             max_tokens=body.max_tokens,
             scene_director=hint,
         )
+        preflight = gate_service.preflight(
+            novel_id,
+            body.chapter_number,
+            outline=body.outline,
+            context_preview={"token_usage": payload["token_usage"]},
+        )
         return ContextRetrieveResponse(
             layer1={"content": payload["layer1_text"]},
             layer2={"content": payload["layer2_text"]},
             layer3={"content": payload["layer3_text"]},
             token_usage=payload["token_usage"],
+            authority_lock=preflight.authority_lock,
+            warnings=preflight.warnings,
+            hard_conflicts=preflight.hard_conflicts,
+            selected_authority=preflight.selected_authority,
+            outline_source=preflight.outline_source,
+            selected_outline=preflight.selected_outline,
         )
     except Exception as e:
         logger.exception("context retrieve failed for novel_id=%s", novel_id)

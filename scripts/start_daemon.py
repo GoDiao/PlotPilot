@@ -24,6 +24,7 @@ from application.paths import AITEXT_ROOT, get_db_path, DATA_DIR
 from infrastructure.persistence.database.connection import get_database
 from infrastructure.persistence.database.sqlite_novel_repository import SqliteNovelRepository
 from infrastructure.persistence.database.sqlite_chapter_repository import SqliteChapterRepository
+from infrastructure.persistence.database.sqlite_chapter_review_repository import SqliteChapterReviewRepository
 from infrastructure.persistence.database.story_node_repository import StoryNodeRepository
 from infrastructure.persistence.database.chapter_element_repository import ChapterElementRepository
 from infrastructure.persistence.database.sqlite_foreshadowing_repository import SqliteForeshadowingRepository
@@ -147,6 +148,7 @@ def build_daemon() -> AutopilotDaemon:
         planning_service=planning_service,
         story_node_repo=story_node_repo,
         chapter_repository=chapter_repo,
+        chapter_review_repository=SqliteChapterReviewRepository(get_database()),
         poll_interval=10,  # 从 5 秒增加到 10 秒，降低轮询频率以减少 API 压力
         voice_drift_service=voice_drift_service,
         circuit_breaker=circuit_breaker,

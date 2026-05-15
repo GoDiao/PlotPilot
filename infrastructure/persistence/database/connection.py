@@ -69,6 +69,9 @@ def _migrate_novels_columns_before_schema_script(conn: sqlite3.Connection) -> No
         "autopilot_status": (
             "ALTER TABLE novels ADD COLUMN autopilot_status TEXT DEFAULT 'stopped'"
         ),
+        "autopilot_mode": (
+            "ALTER TABLE novels ADD COLUMN autopilot_mode TEXT DEFAULT 'full_draft'"
+        ),
         "current_stage": (
             "ALTER TABLE novels ADD COLUMN current_stage TEXT DEFAULT 'planning'"
         ),
@@ -122,6 +125,7 @@ def _apply_autopilot_v2_migrations(conn: sqlite3.Connection) -> None:
     cols = {row[1] for row in cur.fetchall()}
     migrations = {
         "max_auto_chapters": "ALTER TABLE novels ADD COLUMN max_auto_chapters INTEGER DEFAULT 9999",
+        "autopilot_mode": "ALTER TABLE novels ADD COLUMN autopilot_mode TEXT DEFAULT 'full_draft'",
         "current_auto_chapters": "ALTER TABLE novels ADD COLUMN current_auto_chapters INTEGER DEFAULT 0",
         "last_chapter_tension": "ALTER TABLE novels ADD COLUMN last_chapter_tension INTEGER DEFAULT 0",
         "consecutive_error_count": "ALTER TABLE novels ADD COLUMN consecutive_error_count INTEGER DEFAULT 0",
@@ -228,6 +232,93 @@ def _apply_chapter_summaries_enhancements(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
+def _ensure_trustworthy_creation_tables(conn: sqlite3.Connection) -> None:
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS chapter_memory_entries (
+            id TEXT PRIMARY KEY,
+            novel_id TEXT NOT NULL,
+            chapter_number INTEGER NOT NULL,
+            memory_layer TEXT NOT NULL CHECK(memory_layer IN ('draft', 'pending', 'canonical')),
+            source TEXT NOT NULL,
+            entry_type TEXT NOT NULL,
+            content TEXT NOT NULL DEFAULT '',
+            payload TEXT NOT NULL DEFAULT '{}',
+            status TEXT NOT NULL DEFAULT 'active',
+            issue_id TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_chapter_memory_entries_scope
+        ON chapter_memory_entries(novel_id, chapter_number, memory_layer, status);
+
+        CREATE TABLE IF NOT EXISTS chapter_issue_actions (
+            id TEXT PRIMARY KEY,
+            novel_id TEXT NOT NULL,
+            chapter_number INTEGER NOT NULL,
+            issue_id TEXT NOT NULL,
+            action TEXT NOT NULL,
+            memo TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'applied',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_chapter_issue_actions_scope
+        ON chapter_issue_actions(novel_id, chapter_number, issue_id);
+
+        CREATE TABLE IF NOT EXISTS chapter_revision_drafts (
+            id TEXT PRIMARY KEY,
+            novel_id TEXT NOT NULL,
+            chapter_number INTEGER NOT NULL,
+            source TEXT NOT NULL,
+            variant_label TEXT NOT NULL,
+            original_content TEXT NOT NULL DEFAULT '',
+            revised_content TEXT NOT NULL DEFAULT '',
+            diff_text TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'draft',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_chapter_revision_drafts_scope
+        ON chapter_revision_drafts(novel_id, chapter_number, status);
+
+        CREATE TABLE IF NOT EXISTS chapter_snapshots (
+            id TEXT PRIMARY KEY,
+            novel_id TEXT NOT NULL,
+            chapter_number INTEGER NOT NULL,
+            content TEXT NOT NULL DEFAULT '',
+            reason TEXT NOT NULL DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_chapter_snapshots_scope
+        ON chapter_snapshots(novel_id, chapter_number, created_at);
+        """
+    )
+    conn.commit()
+
+
+def _ensure_chapter_rewrite_tables(conn: sqlite3.Connection) -> None:
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS chapter_rewrite_snapshots (
+            id TEXT PRIMARY KEY,
+            novel_id TEXT NOT NULL,
+            chapter_number INTEGER NOT NULL,
+            scope TEXT NOT NULL DEFAULT 'pre_write',
+            reason TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'active',
+            payload TEXT NOT NULL DEFAULT '{}',
+            warnings TEXT NOT NULL DEFAULT '[]',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            restored_at TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_chapter_rewrite_snapshots_scope
+        ON chapter_rewrite_snapshots(novel_id, chapter_number, status, created_at);
+        """
+    )
+    conn.commit()
+
+
 
 def _apply_migration_files(conn: sqlite3.Connection) -> None:
     """应用 migrations 目录下全部 .sql（幂等执行，顺序按文件名稳定排序）。"""
@@ -329,6 +420,8 @@ class DatabaseConnection:
         _apply_last_chapter_audit_columns(conn)
         _apply_character_enhancements(conn)
         _apply_chapter_summaries_enhancements(conn)
+        _ensure_trustworthy_creation_tables(conn)
+        _ensure_chapter_rewrite_tables(conn)
         _ensure_triple_provenance_table(conn)
         _apply_migration_files(conn)
         conn.close()

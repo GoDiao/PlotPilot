@@ -413,6 +413,12 @@ export interface ContextPreviewResult {
   layer2: ContextLayerContent
   layer3: ContextLayerContent
   token_usage: ContextTokenUsage
+  authority_lock?: string[]
+  warnings?: string[]
+  hard_conflicts?: string[]
+  selected_authority?: string[]
+  outline_source?: string
+  selected_outline?: string
 }
 
 export async function retrieveContext(

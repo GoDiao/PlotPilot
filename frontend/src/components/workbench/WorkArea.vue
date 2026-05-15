@@ -57,6 +57,71 @@
                   </n-space>
                 </div>
 
+                <n-card size="small" class="quality-gate-card" :bordered="true">
+                  <template #header>
+                    <n-space align="center" justify="space-between" style="width: 100%">
+                      <span>本章门禁</span>
+                      <n-tag size="small" :type="qualityGateTagType" round>
+                        {{ qualityGateLabel }}
+                      </n-tag>
+                    </n-space>
+                  </template>
+                  <n-skeleton v-if="qualityGateLoading" text :repeat="2" />
+                  <n-space v-else vertical :size="8">
+                    <n-space align="center" :size="8" wrap>
+                      <n-text depth="3">{{ qualityGateSummary }}</n-text>
+                      <n-button size="tiny" secondary @click="loadQualityGate">刷新</n-button>
+                    </n-space>
+                    <n-space v-if="qualityGate?.issues?.length" vertical :size="6">
+                      <n-alert
+                        v-for="issue in qualityGate.issues"
+                        :key="issue.code"
+                        :type="issue.severity === 'blocker' ? 'error' : 'warning'"
+                        :show-icon="true"
+                      >
+                        <strong>{{ issue.message }}</strong>
+                        <div v-if="issue.action" class="gate-action">建议：{{ issue.action }}</div>
+                      </n-alert>
+                    </n-space>
+                    <n-space v-else-if="qualityGate" :size="8" align="center">
+                      <n-text type="success">未发现阻断项，可由作者确认后锁定。</n-text>
+                    </n-space>
+                    <n-collapse v-if="issueTasks.length" class="issue-inbox" arrow-placement="right">
+                      <n-collapse-item title="问题任务" name="issue-tasks">
+                        <n-space vertical :size="6">
+                          <n-card v-for="task in issueTasks" :key="task.id" size="small" :bordered="true">
+                            <n-space vertical :size="4">
+                              <n-space align="center" :size="6">
+                                <n-tag size="tiny" :type="task.severity === 'blocker' ? 'error' : 'warning'">
+                                  {{ task.severity }}
+                                </n-tag>
+                                <n-text strong>{{ task.title }}</n-text>
+                              </n-space>
+                              <n-text depth="3" class="issue-task-line">证据：{{ task.evidence }}</n-text>
+                              <n-text depth="3" class="issue-task-line">依据：{{ task.basis }}</n-text>
+                              <n-text class="issue-task-line">建议：{{ task.recommended_action || '人工判断后处理' }}</n-text>
+                              <n-space :size="6" justify="end" wrap class="issue-task-actions">
+                                <n-button size="tiny" secondary @click="applyIssueAction(task, 'fix_text')">修正文稿</n-button>
+                                <n-button size="tiny" secondary @click="applyIssueAction(task, 'accept_new_setting')">接受设定</n-button>
+                                <n-button size="tiny" secondary @click="applyIssueAction(task, 'mark_false_positive')">误报</n-button>
+                                <n-button size="tiny" tertiary @click="applyIssueAction(task, 'ignore')">忽略</n-button>
+                              </n-space>
+                            </n-space>
+                          </n-card>
+                        </n-space>
+                      </n-collapse-item>
+                    </n-collapse>
+                    <n-space justify="end" :size="8" wrap class="quality-gate-actions">
+                      <n-button size="small" secondary :disabled="isAssistedReadOnly || qualityGateLoading" @click="markCurrentRevisionRequired">
+                        标记需修订
+                      </n-button>
+                      <n-button size="small" type="primary" :disabled="isAssistedReadOnly || !qualityGate?.can_lock" @click="lockCurrentChapter">
+                        锁定本章
+                      </n-button>
+                    </n-space>
+                  </n-space>
+                </n-card>
+
                 <div class="editor-body">
                   <n-input
                     v-model:value="chapterContent"
@@ -71,7 +136,7 @@
                 <div class="editor-footer">
                   <n-space :size="8" align="center" justify="space-between" style="width: 100%">
                     <n-text depth="3">字数: {{ wordCount }}</n-text>
-                    <n-space :size="8">
+                    <n-space :size="8" wrap class="editor-footer-actions">
                       <n-tooltip trigger="hover" :disabled="!isAutopilotRunning && !isAssistedReadOnly">
                         <template #trigger>
                           <n-button
@@ -94,6 +159,17 @@
                         title="诊断当前章节张力缺口"
                       >
                         🔍 张力诊断
+                      </n-button>
+                      <n-button
+                        size="small"
+                        tertiary
+                        type="error"
+                        :disabled="isAssistedReadOnly || rewritingChapter"
+                        :loading="rewritingChapter"
+                        @click="confirmRewriteCurrentChapter"
+                        title="回退本章正文与章后副作用，重新开始写"
+                      >
+                        ♻️ 重写本章
                       </n-button>
                     </n-space>
                   </n-space>
@@ -294,6 +370,48 @@
                   :show-indicator="false"
                   :color="contextPreview.token_usage.total / contextPreview.token_usage.limit > 0.9 ? '#f0a020' : '#18a058'"
                 />
+                <n-alert
+                  v-if="contextPreview.hard_conflicts?.length"
+                  type="error"
+                  :show-icon="true"
+                  style="font-size:12px"
+                >
+                  <n-space vertical :size="4">
+                    <n-text v-for="item in contextPreview.hard_conflicts" :key="item">
+                      {{ item }}
+                    </n-text>
+                  </n-space>
+                </n-alert>
+                <n-alert
+                  v-else-if="contextPreview.warnings?.length"
+                  type="warning"
+                  :show-icon="true"
+                  style="font-size:12px"
+                >
+                  <n-space vertical :size="4">
+                    <n-text v-for="item in contextPreview.warnings" :key="item">
+                      {{ item }}
+                    </n-text>
+                  </n-space>
+                </n-alert>
+                <n-card v-if="contextPreview.authority_lock?.length" size="small" class="authority-lock-card" :bordered="true">
+                  <template #header>
+                    <n-space align="center" :size="6">
+                      <span style="font-size:13px;font-weight:600">Authority Lock</span>
+                      <n-tag size="tiny" type="info">{{ contextPreview.outline_source || 'context' }}</n-tag>
+                    </n-space>
+                  </template>
+                  <n-space vertical :size="4">
+                    <n-text
+                      v-for="item in contextPreview.authority_lock"
+                      :key="item"
+                      depth="3"
+                      class="authority-lock-line"
+                    >
+                      {{ item }}
+                    </n-text>
+                  </n-space>
+                </n-card>
                 <n-collapse>
                   <n-collapse-item title="Layer 1 · 核心设定（Bible + 伏笔）" name="l1">
                     <n-code :code="contextPreview.layer1.content" word-wrap style="font-size:11px;max-height:200px;overflow:auto" />
@@ -441,6 +559,37 @@
                 </n-card>
               </n-space>
             </div>
+            <n-space v-if="tensionResult" justify="end">
+              <n-button
+                size="small"
+                type="primary"
+                secondary
+                :loading="tensionRevisionLoading"
+                @click="createTensionRevisionDrafts"
+              >
+                生成改稿 Diff
+              </n-button>
+            </n-space>
+            <div v-if="tensionRevisionDrafts.length">
+              <n-text strong style="display:block;margin-bottom:6px">修订草稿</n-text>
+              <n-collapse accordion>
+                <n-collapse-item
+                  v-for="draft in tensionRevisionDrafts"
+                  :key="draft.id"
+                  :title="revisionVariantLabel(draft.variant_label)"
+                  :name="draft.id"
+                >
+                  <n-space vertical :size="8">
+                    <n-code :code="draft.diff_text || draft.revised_content" word-wrap class="revision-diff-code" />
+                    <n-space justify="end">
+                      <n-button size="small" type="primary" @click="applyRevisionDraft(draft.id)">
+                        采用此版
+                      </n-button>
+                    </n-space>
+                  </n-space>
+                </n-collapse-item>
+              </n-collapse>
+            </div>
           </n-space>
         </template>
       </n-space>
@@ -456,7 +605,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
-import { useMessage } from 'naive-ui'
+import { useDialog, useMessage } from 'naive-ui'
 import { resolveHttpUrl } from '../../api/config'
 import {
   consumeGenerateChapterStream,
@@ -465,8 +614,9 @@ import {
 } from '../../api/workflow'
 import type { ContextPreviewResult, GenerateChapterWorkflowResponse } from '../../api/workflow'
 import { chapterApi } from '../../api/chapter'
+import type { ChapterIssueTaskDTO, ChapterQualityGateDTO, ChapterRevisionDraftDTO } from '../../api/chapter'
 import { tensionApi } from '../../api/tools'
-import type { TensionDiagnosis } from '../../api/tools'
+import type { TensionDiagnosis, TensionRevisionDraft } from '../../api/tools'
 import ChapterElementPanel from './ChapterElementPanel.vue'
 import ChapterContentPanel from './ChapterContentPanel.vue'
 import ChapterStatusPanel from './ChapterStatusPanel.vue'
@@ -504,6 +654,7 @@ const emit = defineEmits<{
 }>()
 
 const message = useMessage()
+const dialog = useDialog()
 
 /** 辅助撰稿：编辑与章级工具；托管撰稿：驾驶舱 + 监控大盘 */
 const workMode = ref<'assisted' | 'managed'>('managed')
@@ -693,6 +844,96 @@ const chapterContent = ref('')
 const originalContent = ref('')
 const loading = computed(() => props.chapterLoading)
 const saving = ref(false)
+const rewritingChapter = ref(false)
+
+const qualityGate = ref<ChapterQualityGateDTO | null>(null)
+const issueTasks = ref<ChapterIssueTaskDTO[]>([])
+const qualityGateLoading = ref(false)
+
+const qualityGateLabel = computed(() => {
+  const status = qualityGate.value?.gate_status
+  const map: Record<string, string> = {
+    pass: '可续写',
+    needs_revision: '需修订',
+    blocked: '阻断',
+    review_pending: '待审',
+  }
+  return status ? (map[status] ?? status) : '未检查'
+})
+
+const qualityGateTagType = computed(() => {
+  const status = qualityGate.value?.gate_status
+  if (status === 'pass') return 'success'
+  if (status === 'blocked') return 'error'
+  if (status === 'needs_revision') return 'warning'
+  return 'default'
+})
+
+const qualityGateSummary = computed(() => {
+  const gate = qualityGate.value
+  if (!gate) return '保存或生成后会检查：是否截断、是否需要修订、是否可进入下一章。'
+  return `字数 ${gate.word_count}；审阅状态 ${gate.review_status}；${gate.can_enter_next ? '可进入下一章' : '尚未进入可信上下文'}`
+})
+
+const loadQualityGate = async () => {
+  if (!currentChapter.value) return
+  qualityGateLoading.value = true
+  try {
+    qualityGate.value = await chapterApi.getQualityGate(props.slug, currentChapter.value.number)
+    issueTasks.value = await chapterApi.listIssueTasks(props.slug, currentChapter.value.number)
+  } catch {
+    qualityGate.value = null
+    issueTasks.value = []
+  } finally {
+    qualityGateLoading.value = false
+  }
+}
+
+function mergeWorkflowIssuesIntoTasks(result: GenerateChapterWorkflowResponse | null, chapterNumber: number) {
+  if (!result?.consistency_report) return
+  const reportItems = [
+    ...(result.consistency_report.issues ?? []),
+    ...(result.consistency_report.warnings ?? []),
+  ]
+  const generatedTasks: ChapterIssueTaskDTO[] = reportItems.map((issue, index) => ({
+    id: `consistency:${chapterNumber}:${issue.type}:${index}`,
+    source: 'consistency_report',
+    code: issue.type,
+    severity: issue.severity === 'critical' ? 'blocker' : issue.severity,
+    title: issue.description,
+    evidence: issue.location != null ? `位置 ${issue.location}` : `第 ${chapterNumber} 章生成稿`,
+    basis: '生成后一致性检查',
+    confidence: issue.severity === 'critical' ? 0.88 : 0.72,
+    recommended_action: '修正文稿、更新 Bible、标记误报或接受为新设定',
+  }))
+  const existingIds = new Set(issueTasks.value.map(task => task.id))
+  issueTasks.value = [
+    ...issueTasks.value,
+    ...generatedTasks.filter(task => !existingIds.has(task.id)),
+  ]
+}
+
+const lockCurrentChapter = async () => {
+  if (!currentChapter.value) return
+  try {
+    qualityGate.value = await chapterApi.lockChapter(props.slug, currentChapter.value.number)
+    message.success(qualityGate.value.can_enter_next ? '本章已锁定，可作为后续可信上下文' : '仍有门禁问题，暂未放行')
+    emit('chapterUpdated')
+  } catch {
+    message.error('锁定失败，请稍后重试')
+  }
+}
+
+const markCurrentRevisionRequired = async () => {
+  if (!currentChapter.value) return
+  try {
+    qualityGate.value = await chapterApi.markRevisionRequired(props.slug, currentChapter.value.number, '作者标记：本章需要修订')
+    message.success('已标记为需修订，暂不作为后续强上下文')
+    emit('chapterUpdated')
+  } catch {
+    message.error('标记失败，请稍后重试')
+  }
+}
 
 // Scene Director 开关
 const useSceneDirector = ref(false)
@@ -702,11 +943,14 @@ const sceneDirectorError = ref('')
 // 张力诊断
 const showTensionModal = ref(false)
 const tensionLoading = ref(false)
+const tensionRevisionLoading = ref(false)
 const tensionStuckReason = ref('')
 const tensionResult = ref<TensionDiagnosis | null>(null)
+const tensionRevisionDrafts = ref<TensionRevisionDraft[]>([])
 
 const openTensionModal = () => {
   tensionResult.value = null
+  tensionRevisionDrafts.value = []
   tensionStuckReason.value = ''
   showTensionModal.value = true
 }
@@ -732,6 +976,67 @@ const runTensionSlingshot = async () => {
 }
 
 // 上下文预览
+const createTensionRevisionDrafts = async () => {
+  if (!currentChapter.value) return
+  tensionRevisionLoading.value = true
+  try {
+    const result = await tensionApi.createRevisionDrafts(props.slug, {
+      novel_id: props.slug,
+      chapter_number: currentChapter.value.number,
+      stuck_reason: tensionStuckReason.value || undefined,
+    })
+    tensionResult.value = result.diagnosis
+    tensionRevisionDrafts.value = result.drafts
+    message.success('已生成 3 个修订草稿')
+  } catch {
+    message.error('生成修订草稿失败')
+  } finally {
+    tensionRevisionLoading.value = false
+  }
+}
+
+const applyRevisionDraft = async (draftId: string) => {
+  if (!currentChapter.value) return
+  try {
+    await chapterApi.applyRevisionDraft(props.slug, currentChapter.value.number, draftId)
+    await handleReload()
+    await loadQualityGate()
+    message.success('已采用修订草稿')
+  } catch {
+    message.error('采用修订草稿失败')
+  }
+}
+
+const revisionVariantLabel = (label: string) => {
+  const map: Record<string, string> = {
+    conservative: '保守增强',
+    high_conflict: '强冲突版',
+    pace_compress: '节奏压缩版',
+  }
+  return map[label] ?? label
+}
+
+const applyIssueAction = async (task: ChapterIssueTaskDTO, action: string) => {
+  const chapterNumber = currentChapter.value?.number ?? task.id.split(':')[1]
+  if (!chapterNumber) return
+  try {
+    await chapterApi.applyIssueAction(
+      props.slug,
+      Number(chapterNumber),
+      task.id,
+      action,
+      task.title,
+    )
+    issueTasks.value = issueTasks.value.filter(item => item.id !== task.id)
+    if (action === 'fix_text') {
+      activeTab.value = 'editor'
+    }
+    message.success('问题任务已处理')
+  } catch {
+    message.error('处理问题任务失败')
+  }
+}
+
 const contextPreview = ref<ContextPreviewResult | null>(null)
 const loadingContext = ref(false)
 
@@ -831,6 +1136,12 @@ watch(() => props.chapterContent, (newContent) => {
   originalContent.value = newContent
 }, { immediate: true })
 
+watch(
+  () => [props.slug, currentChapter.value?.number, props.chapterContent],
+  () => { void loadQualityGate() },
+  { immediate: true }
+)
+
 // 切换回正在生成的章节时，自动打开生成弹窗（让用户看到进度）
 watch(() => props.currentChapterId, (id) => {
   if (id !== null && id === generatingChapterId.value) {
@@ -853,6 +1164,7 @@ const handleSave = async () => {
   try {
     await chapterApi.updateChapter(props.slug, currentChapter.value.id, { content: chapterContent.value })
     originalContent.value = chapterContent.value
+    await loadQualityGate()
     message.success('保存成功')
     emit('chapterUpdated')
   } catch (error) {
@@ -868,9 +1180,54 @@ const handleReload = async () => {
     const fresh = await chapterApi.getChapter(props.slug, currentChapter.value.number)
     chapterContent.value = fresh.content ?? ''
     originalContent.value = fresh.content ?? ''
+    await loadQualityGate()
     message.success('已重新加载')
   } catch {
     message.error('加载失败，请稍后重试')
+  }
+}
+
+const confirmRewriteCurrentChapter = async () => {
+  const chapter = currentChapter.value
+  if (!chapter || rewritingChapter.value) return
+  try {
+    const preview = await chapterApi.previewRewriteReset(props.slug, chapter.number)
+    const warningText = preview.warnings?.length
+      ? preview.warnings.map(item => `• ${item}`).join('\n')
+      : '未发现额外风险。'
+    const modeText = preview.mode === 'snapshot_restore'
+      ? '将使用写前快照恢复 Bible、伏笔、图谱、记忆和本章副作用。'
+      : '没有写前快照：只清理本章可定位副作用，可能残留全局污染。'
+    dialog.warning({
+      title: `重写第 ${chapter.number} 章？`,
+      content: `${modeText}\n\n${warningText}\n\n此操作会清空本章正文并置为草稿，不会自动重新生成。`,
+      positiveText: '确认重写',
+      negativeText: '取消',
+      onPositiveClick: async () => {
+        await rewriteCurrentChapter()
+      },
+    })
+  } catch {
+    message.error('获取重写预览失败')
+  }
+}
+
+const rewriteCurrentChapter = async () => {
+  const chapter = currentChapter.value
+  if (!chapter) return
+  rewritingChapter.value = true
+  try {
+    const result = await chapterApi.resetForRewrite(props.slug, chapter.number, false)
+    chapterContent.value = ''
+    originalContent.value = ''
+    await loadQualityGate()
+    emit('chapterUpdated')
+    const mode = result.mode === 'snapshot_restore' ? '已恢复写前快照' : '已执行软重写'
+    message.success(`${mode}，本章已回到草稿状态`)
+  } catch {
+    message.error('重写回退失败，请稍后重试')
+  } finally {
+    rewritingChapter.value = false
   }
 }
 
@@ -977,6 +1334,7 @@ const handleStartGenerate = async () => {
           lastWorkflowResult.value = result
           lastQcChapterNumber.value = targetChapterNumber
           generatedContent.value = result.content
+          mergeWorkflowIssuesIntoTasks(result, targetChapterNumber)
           streamProgressPct.value = 100
           streamPhaseLabel.value = '已完成'
           if (props.currentChapterId === targetChapterId) {
@@ -1023,6 +1381,7 @@ const handleSaveGenerated = async () => {
       chapterContent.value = generatedContent.value
       originalContent.value = generatedContent.value
     }
+    await loadQualityGate()
     message.success(`已保存到第 ${saveTarget.number} 章`)
     emit('chapterUpdated')
     showGenerateModal.value = false
@@ -1286,6 +1645,67 @@ defineExpose({ ensureAssistedMode })
   margin: 0;
   font-size: 16px;
   font-weight: 600;
+}
+
+.quality-gate-card {
+  flex-shrink: 0;
+  background: rgba(24, 160, 88, 0.035);
+  max-height: 34vh;
+  overflow: auto;
+}
+
+.gate-action {
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.82;
+}
+
+.issue-inbox {
+  border-top: 1px dashed var(--app-border);
+  padding-top: 4px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.issue-task-line {
+  display: block;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.issue-task-actions,
+.quality-gate-actions,
+.editor-footer-actions {
+  min-width: 0;
+}
+
+.authority-lock-card {
+  background: rgba(32, 128, 240, 0.035);
+}
+
+.authority-lock-line {
+  display: block;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.revision-diff-code {
+  display: block;
+  max-height: 360px;
+  overflow: auto;
+  font-size: 11px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.revision-diff-code :deep(pre),
+.revision-diff-code :deep(code) {
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere;
 }
 
 .editor-body {

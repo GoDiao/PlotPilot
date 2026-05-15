@@ -10,7 +10,15 @@
     <!-- ═══ 主题选择 ═══ -->
     <div class="theme-section">
       <div class="theme-preview-bar">
-        <div class="theme-preview-card" :class="{ 'is-dark': themeStore.isDark, 'is-anchor': themeStore.isAnchor }">
+        <div
+          class="theme-preview-card"
+          :class="{
+            'is-dark': themeStore.isDark,
+            'is-anchor': themeStore.isAnchor,
+            'is-paper': themeStore.isPaper,
+            'is-ocean': themeStore.isOcean,
+          }"
+        >
           <div class="preview-header">
             <span class="preview-dot"></span>
             <span class="preview-dot"></span>
@@ -78,6 +86,18 @@ const themeOptions = computed(() => [
     label: '黑金',
     desc: '主播限定色，奢华暗金风格',
     icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26"><defs><linearGradient id="ag" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#d4a843"/><stop offset="100%" stop-color="#f5d485"/></linearGradient></defs><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="url(#ag)"/></svg>',
+  },
+  {
+    value: 'paper' as ThemeMode,
+    label: '纸页',
+    desc: '温润纸感，适合白天长时间写稿',
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26"><path d="M5 3h10l4 4v14H5z" fill="#fff4df" stroke="#8b5e34" stroke-width="1.6"/><path d="M15 3v5h5" fill="none" stroke="#c89b6b" stroke-width="1.6"/><path d="M8 12h8M8 16h6" stroke="#8b5e34" stroke-width="1.7" stroke-linecap="round"/></svg>',
+  },
+  {
+    value: 'ocean' as ThemeMode,
+    label: '深海',
+    desc: '柔和墨蓝，适合夜间沉浸写作',
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26"><defs><linearGradient id="og" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#76d1c8"/><stop offset="100%" stop-color="#24515a"/></linearGradient></defs><path d="M3 15c3-5 6 3 9-2s6 3 9-2v7H3z" fill="url(#og)"/><path d="M5 8c2-2 4 2 6 0s4 2 8-1" stroke="#76d1c8" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
   },
   {
     value: 'auto' as ThemeMode,
@@ -154,6 +174,22 @@ function handleThemeChange(newMode: ThemeMode) {
     inset 0 1px 0 rgba(212, 168, 67, 0.05);
 }
 
+.theme-preview-card.is-paper {
+  background: #fffaf0;
+  border-color: rgba(139, 94, 52, 0.22);
+  box-shadow:
+    0 5px 18px rgba(94, 69, 45, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.theme-preview-card.is-ocean {
+  background: linear-gradient(145deg, #0b171b, #132328);
+  border-color: rgba(118, 209, 200, 0.2);
+  box-shadow:
+    0 6px 24px rgba(0, 0, 0, 0.38),
+    0 2px 10px rgba(118, 209, 200, 0.08);
+}
+
 .preview-header {
   display: flex;
   gap: 6px;
@@ -166,6 +202,14 @@ function handleThemeChange(newMode: ThemeMode) {
   background: #1a2332;
 }
 
+.is-paper .preview-header {
+  background: #fbf2e3;
+}
+
+.is-ocean .preview-header {
+  background: #0e1d22;
+}
+
 .preview-dot {
   width: 10px;
   height: 10px;
@@ -176,6 +220,14 @@ function handleThemeChange(newMode: ThemeMode) {
 
 .is-dark .preview-dot {
   background: #374151;
+}
+
+.is-paper .preview-dot {
+  background: #d8bd98;
+}
+
+.is-ocean .preview-dot {
+  background: #24515a;
 }
 
 .preview-body {
@@ -191,6 +243,14 @@ function handleThemeChange(newMode: ThemeMode) {
   background: #0c1222;
 }
 
+.is-paper .preview-body {
+  background: #fffaf0;
+}
+
+.is-ocean .preview-body {
+  background: #132328;
+}
+
 .preview-line {
   height: 8px;
   border-radius: 4px;
@@ -200,6 +260,14 @@ function handleThemeChange(newMode: ThemeMode) {
 
 .is-dark .preview-line {
   background: #1e293b;
+}
+
+.is-paper .preview-line {
+  background: #ead7bd;
+}
+
+.is-ocean .preview-line {
+  background: #1f4148;
 }
 
 .preview-line.long { width: 100%; }
@@ -248,6 +316,22 @@ function handleThemeChange(newMode: ThemeMode) {
     0 2px 12px rgba(212, 168, 67, 0.15);
 }
 
+.theme-mode-card.active[data-mode="paper"] {
+  border-color: #8b5e34;
+  background: linear-gradient(135deg, rgba(139, 94, 52, 0.08), rgba(255, 250, 240, 0.58));
+  box-shadow:
+    0 0 0 3px rgba(139, 94, 52, 0.1),
+    0 2px 12px rgba(94, 69, 45, 0.13);
+}
+
+.theme-mode-card.active[data-mode="ocean"] {
+  border-color: #76d1c8;
+  background: linear-gradient(135deg, rgba(118, 209, 200, 0.1), rgba(36, 81, 90, 0.08));
+  box-shadow:
+    0 0 0 3px rgba(118, 209, 200, 0.12),
+    0 2px 12px rgba(118, 209, 200, 0.12);
+}
+
 .mode-card-icon {
   flex-shrink: 0;
   width: 46px;
@@ -269,6 +353,16 @@ function handleThemeChange(newMode: ThemeMode) {
 .theme-mode-card.active[data-mode="anchor"] .mode-card-icon {
   background: rgba(212, 168, 67, 0.1);
   border-color: rgba(212, 168, 67, 0.25);
+}
+
+.theme-mode-card.active[data-mode="paper"] .mode-card-icon {
+  background: rgba(139, 94, 52, 0.1);
+  border-color: rgba(139, 94, 52, 0.25);
+}
+
+.theme-mode-card.active[data-mode="ocean"] .mode-card-icon {
+  background: rgba(118, 209, 200, 0.12);
+  border-color: rgba(118, 209, 200, 0.28);
 }
 
 .mode-card-info {
@@ -297,5 +391,13 @@ function handleThemeChange(newMode: ThemeMode) {
 
 .theme-mode-card.active[data-mode="anchor"] .mode-card-check {
   color: var(--color-gold, #d4a843);
+}
+
+.theme-mode-card.active[data-mode="paper"] .mode-card-check {
+  color: #8b5e34;
+}
+
+.theme-mode-card.active[data-mode="ocean"] .mode-card-check {
+  color: #76d1c8;
 }
 </style>

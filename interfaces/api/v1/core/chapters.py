@@ -6,6 +6,8 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Path
 from pydantic import BaseModel, Field
 
 from application.core.services.chapter_service import ChapterService
+from application.core.services.chapter_quality_gate_service import ChapterQualityGateService
+from application.core.services.trustworthy_creation_service import TrustworthyCreationService
 from application.core.services.novel_service import NovelService
 from application.core.dtos.chapter_dto import ChapterDTO
 from application.core.dtos.novel_dto import NovelDTO
@@ -14,8 +16,11 @@ from application.core.dtos.chapter_structure_dto import ChapterStructureDTO
 from application.engine.services.chapter_aftermath_pipeline import ChapterAftermathPipeline
 from interfaces.api.dependencies import (
     get_chapter_service,
+    get_chapter_quality_gate_service,
     get_novel_service,
     get_chapter_aftermath_pipeline,
+    get_trustworthy_creation_service,
+    get_chapter_rewrite_service,
 )
 from domain.shared.exceptions import EntityNotFoundError
 logger = logging.getLogger(__name__)
@@ -31,6 +36,17 @@ async def _run_chapter_aftermath(
     await pipeline.run_after_chapter_saved(novel_id, chapter_number, content)
 
 
+async def _run_locked_chapter_sync(
+    novel_id: str,
+    chapter_number: int,
+    content: str,
+    pipeline: ChapterAftermathPipeline,
+    gate_service: ChapterQualityGateService,
+) -> None:
+    await pipeline.run_after_chapter_saved(novel_id, chapter_number, content)
+    gate_service.mark_synced(novel_id, chapter_number)
+
+
 router = APIRouter(tags=["chapters"])
 
 
@@ -40,10 +56,33 @@ class UpdateChapterContentRequest(BaseModel):
     content: str = Field(..., min_length=0, max_length=100000, description="章节内容")
 
 
+class RewriteResetRequest(BaseModel):
+    restore_content: bool = Field(default=False, description="是否恢复写前正文；默认清空为草稿以便重写")
+
+
 class SaveChapterReviewRequest(BaseModel):
     """保存章节审阅请求"""
-    status: Literal["draft", "reviewed", "approved"] = Field(..., description="审阅状态")
+    status: Literal[
+        "draft",
+        "reviewed",
+        "approved",
+        "review_pending",
+        "revision_required",
+        "locked",
+        "synced",
+    ] = Field(..., description="审阅状态")
     memo: str = Field(default="", description="审阅备注")
+
+
+class MarkRevisionRequiredRequest(BaseModel):
+    """标记章节需修订请求"""
+    memo: str = Field(default="", description="修订说明")
+
+
+class ChapterPreflightRequest(BaseModel):
+    """生成前上下文预检请求"""
+    outline: str = Field(default="", description="前端输入或当前章大纲")
+    context_preview: dict = Field(default_factory=dict, description="可选上下文预览结果")
 
 
 class ChapterReviewResponse(BaseModel):
@@ -61,6 +100,78 @@ class ChapterStructureResponse(BaseModel):
     dialogue_ratio: float
     scene_count: int
     pacing: str
+
+
+class ChapterGateIssueResponse(BaseModel):
+    """章节质量门禁问题。"""
+    code: str
+    severity: str
+    message: str
+    action: str = ""
+
+
+class ChapterQualityGateResponse(BaseModel):
+    """章节质量门禁响应。"""
+    novel_id: str
+    chapter_number: int
+    gate_status: str
+    chapter_status: str
+    review_status: str
+    can_enter_next: bool
+    can_lock: bool
+    word_count: int
+    issues: List[ChapterGateIssueResponse]
+    suggestions: List[str]
+
+
+class ChapterIssueTaskResponse(BaseModel):
+    """章节问题任务。"""
+    id: str
+    source: str
+    code: str
+    severity: str
+    title: str
+    evidence: str = ""
+    basis: str = ""
+    confidence: float = 1.0
+    recommended_action: str = ""
+
+
+class ChapterPreflightResponse(BaseModel):
+    """生成前上下文预检响应。"""
+    novel_id: str
+    chapter_number: int
+    outline_source: str
+    selected_outline: str
+    authority_lock: List[str]
+    warnings: List[str]
+    hard_conflicts: List[str]
+    selected_authority: List[str]
+
+
+class ChapterMemoryEntryRequest(BaseModel):
+    memory_layer: Literal["draft", "pending", "canonical"]
+    source: str = "manual"
+    entry_type: str = "note"
+    content: str
+    payload: dict = Field(default_factory=dict)
+    issue_id: str | None = None
+
+
+class ChapterIssueActionRequest(BaseModel):
+    issue_id: str
+    action: Literal[
+        "fix_text",
+        "update_bible",
+        "mark_false_positive",
+        "accept_new_setting",
+        "ignore",
+    ]
+    memo: str = ""
+
+
+class ApplyRevisionDraftRequest(BaseModel):
+    draft_id: str
 
 
 class CreateChapterRequest(BaseModel):
@@ -168,30 +279,63 @@ async def ensure_chapter(
 async def update_chapter(
     novel_id: str,
     request: UpdateChapterContentRequest,
-    background_tasks: BackgroundTasks,
     chapter_number: int = Path(..., gt=0, description="章节编号"),
     service: ChapterService = Depends(get_chapter_service),
-    pipeline: ChapterAftermathPipeline = Depends(get_chapter_aftermath_pipeline),
+    gate_service: ChapterQualityGateService = Depends(get_chapter_quality_gate_service),
+    rewrite_service=Depends(get_chapter_rewrite_service),
 ):
-    """更新章节内容，保存成功后后台执行统一章后管线（见 ChapterAftermathPipeline）。"""
+    """更新章节内容。保存仅产生草稿/待审，不直接写入强长期记忆。"""
     try:
+        rewrite_service.create_prewrite_snapshot(novel_id, chapter_number, "manual_update_chapter")
         chapter = service.update_chapter_by_novel_and_number(
             novel_id,
             chapter_number,
             request.content
         )
+        gate_service.mark_review_pending(
+            novel_id,
+            chapter_number,
+            "正文已更新，等待作者审稿与锁定后再进入长期记忆。",
+        )
     except EntityNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-    content = request.content
-    background_tasks.add_task(
-        _run_chapter_aftermath,
-        novel_id,
-        chapter_number,
-        content,
-        pipeline,
-    )
     return chapter
+
+
+@router.get("/{novel_id}/chapters/{chapter_number}/rewrite/preview")
+async def preview_chapter_rewrite_reset(
+    novel_id: str,
+    chapter_number: int = Path(..., gt=0, description="章节编号"),
+    rewrite_service=Depends(get_chapter_rewrite_service),
+):
+    return rewrite_service.preview_reset(novel_id, chapter_number)
+
+
+@router.post("/{novel_id}/chapters/{chapter_number}/rewrite/reset")
+async def reset_chapter_for_rewrite(
+    novel_id: str,
+    request: RewriteResetRequest = RewriteResetRequest(),
+    chapter_number: int = Path(..., gt=0, description="章节编号"),
+    rewrite_service=Depends(get_chapter_rewrite_service),
+    gate_service: ChapterQualityGateService = Depends(get_chapter_quality_gate_service),
+):
+    try:
+        result = rewrite_service.reset_for_rewrite(
+            novel_id,
+            chapter_number,
+            restore_content=request.restore_content,
+        )
+        gate_service.mark_review_pending(
+            novel_id,
+            chapter_number,
+            "章节已重写回退，等待重新生成/编辑后审稿。",
+        )
+        return result
+    except EntityNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/{novel_id}/chapters/{chapter_number}/review", response_model=ChapterReviewResponse)
@@ -260,6 +404,173 @@ async def save_chapter_review(
             updated_at=review.updated_at.isoformat()
         )
     except EntityNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/{novel_id}/chapters/{chapter_number}/quality-gate", response_model=ChapterQualityGateResponse)
+async def get_chapter_quality_gate(
+    novel_id: str,
+    chapter_number: int = Path(..., gt=0, description="章节编号"),
+    service: ChapterQualityGateService = Depends(get_chapter_quality_gate_service),
+):
+    """获取本章是否可进入下一章的质量门禁。"""
+    try:
+        return service.evaluate(novel_id, chapter_number)
+    except (EntityNotFoundError, ValueError) as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/{novel_id}/chapters/{chapter_number}/issue-tasks", response_model=List[ChapterIssueTaskResponse])
+async def list_chapter_issue_tasks(
+    novel_id: str,
+    chapter_number: int = Path(..., gt=0, description="章节编号"),
+    service: ChapterQualityGateService = Depends(get_chapter_quality_gate_service),
+):
+    """把门禁/诊断问题聚合为可处理任务。"""
+    try:
+        return service.list_issue_tasks(novel_id, chapter_number)
+    except (EntityNotFoundError, ValueError) as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post("/{novel_id}/chapters/{chapter_number}/preflight", response_model=ChapterPreflightResponse)
+async def preflight_chapter_generation(
+    novel_id: str,
+    request: ChapterPreflightRequest,
+    chapter_number: int = Path(..., gt=0, description="章节编号"),
+    service: ChapterQualityGateService = Depends(get_chapter_quality_gate_service),
+):
+    """生成前上下文健康检查。"""
+    try:
+        return service.preflight(
+            novel_id,
+            chapter_number,
+            outline=request.outline,
+            context_preview=request.context_preview,
+        )
+    except (EntityNotFoundError, ValueError) as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post("/{novel_id}/chapters/{chapter_number}/lock", response_model=ChapterQualityGateResponse)
+async def lock_chapter(
+    novel_id: str,
+    background_tasks: BackgroundTasks,
+    chapter_number: int = Path(..., gt=0, description="章节编号"),
+    service: ChapterQualityGateService = Depends(get_chapter_quality_gate_service),
+    chapter_service: ChapterService = Depends(get_chapter_service),
+    pipeline: ChapterAftermathPipeline = Depends(get_chapter_aftermath_pipeline),
+    rewrite_service=Depends(get_chapter_rewrite_service),
+):
+    """锁定章节，允许其作为后续强上下文候选。"""
+    try:
+        rewrite_service.create_prewrite_snapshot(novel_id, chapter_number, "lock_chapter")
+        gate = service.lock_chapter(novel_id, chapter_number)
+        if gate.can_enter_next:
+            chapter = chapter_service.get_chapter_by_novel_and_number(novel_id, chapter_number)
+            background_tasks.add_task(
+                _run_locked_chapter_sync,
+                novel_id,
+                chapter_number,
+                chapter.content or "",
+                pipeline,
+                service,
+            )
+        return gate
+    except (EntityNotFoundError, ValueError) as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post("/{novel_id}/chapters/{chapter_number}/revision-required", response_model=ChapterQualityGateResponse)
+async def mark_chapter_revision_required(
+    novel_id: str,
+    request: MarkRevisionRequiredRequest,
+    chapter_number: int = Path(..., gt=0, description="章节编号"),
+    service: ChapterQualityGateService = Depends(get_chapter_quality_gate_service),
+):
+    """标记章节需要修订，阻止其继续污染后续上下文。"""
+    try:
+        return service.mark_revision_required(novel_id, chapter_number, request.memo)
+    except (EntityNotFoundError, ValueError) as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/{novel_id}/chapters/{chapter_number}/memory")
+async def list_chapter_memory(
+    novel_id: str,
+    chapter_number: int = Path(..., gt=0, description="章节编号"),
+    memory_layer: str | None = None,
+    service: TrustworthyCreationService = Depends(get_trustworthy_creation_service),
+):
+    return service.list_memory_entries(novel_id, chapter_number, memory_layer)
+
+
+@router.post("/{novel_id}/chapters/{chapter_number}/memory")
+async def add_chapter_memory(
+    novel_id: str,
+    request: ChapterMemoryEntryRequest,
+    chapter_number: int = Path(..., gt=0, description="章节编号"),
+    service: TrustworthyCreationService = Depends(get_trustworthy_creation_service),
+):
+    return service.add_memory_entry(
+        novel_id,
+        chapter_number,
+        request.memory_layer,
+        request.source,
+        request.entry_type,
+        request.content,
+        request.payload,
+        request.issue_id,
+    )
+
+
+@router.post("/{novel_id}/chapters/{chapter_number}/issue-actions")
+async def apply_chapter_issue_action(
+    novel_id: str,
+    request: ChapterIssueActionRequest,
+    chapter_number: int = Path(..., gt=0, description="章节编号"),
+    service: TrustworthyCreationService = Depends(get_trustworthy_creation_service),
+):
+    return service.apply_issue_action(
+        novel_id,
+        chapter_number,
+        request.issue_id,
+        request.action,
+        request.memo,
+    )
+
+
+@router.get("/{novel_id}/chapters/{chapter_number}/revision-drafts")
+async def list_revision_drafts(
+    novel_id: str,
+    chapter_number: int = Path(..., gt=0, description="章节编号"),
+    service: TrustworthyCreationService = Depends(get_trustworthy_creation_service),
+):
+    return service.list_revision_drafts(novel_id, chapter_number)
+
+
+@router.post("/{novel_id}/chapters/{chapter_number}/revision-drafts/apply")
+async def apply_revision_draft(
+    novel_id: str,
+    request: ApplyRevisionDraftRequest,
+    chapter_number: int = Path(..., gt=0, description="章节编号"),
+    service: TrustworthyCreationService = Depends(get_trustworthy_creation_service),
+):
+    try:
+        return service.apply_revision_draft(request.draft_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post("/{novel_id}/chapters/{chapter_number}/rollback-latest")
+async def rollback_latest_chapter_snapshot(
+    novel_id: str,
+    chapter_number: int = Path(..., gt=0, description="章节编号"),
+    service: TrustworthyCreationService = Depends(get_trustworthy_creation_service),
+):
+    try:
+        return service.rollback_latest_snapshot(novel_id, chapter_number)
+    except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
 

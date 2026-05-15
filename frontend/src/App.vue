@@ -65,6 +65,42 @@ const ANCHOR_PALETTE = {
   selectBorder:   '#c9a227',
 } as const
 
+const PAPER_PALETTE = {
+  primary:        '#8b5e34',
+  primaryHover:   '#a16f43',
+  primaryPressed: '#6f4728',
+  primarySuppl:   '#c89b6b',
+  text1:          '#2f251c',
+  text2:          '#5d4b3d',
+  text3:          '#827064',
+  border:         'rgba(94, 69, 45, 0.14)',
+  divider:        'rgba(94, 69, 45, 0.08)',
+  surface:        '#fffaf0',
+  tableStriped:   '#fbf2e3',
+  tableHover:     '#f8edda',
+  inputBg:        '#fffdf7',
+  drawerBg:       '#f4ead8',
+  selectBorder:   '#8b5e34',
+} as const
+
+const OCEAN_PALETTE = {
+  primary:        '#76d1c8',
+  primaryHover:   '#9be1da',
+  primaryPressed: '#4db7ad',
+  primarySuppl:   '#b7eee8',
+  text1:          '#e7f3f1',
+  text2:          '#b8cfcc',
+  text3:          '#7f9f9b',
+  border:         'rgba(118, 209, 200, 0.14)',
+  divider:        'rgba(118, 209, 200, 0.08)',
+  surface:        '#132328',
+  tableStriped:   '#0e1d22',
+  tableHover:     '#1a3036',
+  inputBg:        '#0e1d22',
+  drawerBg:       '#0b171b',
+  selectBorder:   '#76d1c8',
+} as const
+
 // 形状与间距等静态覆盖，与主题无关，freeze 后永不重建
 const SHAPE_OVERRIDES: GlobalThemeOverrides = Object.freeze({
   common: {
@@ -89,6 +125,8 @@ const SHAPE_OVERRIDES: GlobalThemeOverrides = Object.freeze({
 // ─── 只有颜色部分是动态的，量少性能好 ─────────────────────────────────────
 const themeOverrides = computed<GlobalThemeOverrides>(() => {
   const p = themeStore.isAnchor ? ANCHOR_PALETTE
+          : themeStore.isOcean  ? OCEAN_PALETTE
+          : themeStore.isPaper  ? PAPER_PALETTE
           : themeStore.isDark   ? DARK_PALETTE
           :                       LIGHT_PALETTE
 

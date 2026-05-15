@@ -318,6 +318,178 @@ body {
   color-scheme: dark;
 }
 
+/* 舒适主题：纸页。低饱和暖白，适合白天长时间写作和审稿。 */
+[data-theme='paper'] {
+  --color-brand: #8b5e34;
+  --color-brand-hover: #a16f43;
+  --color-brand-pressed: #6f4728;
+  --color-brand-suppl: #c89b6b;
+  --color-brand-light: rgba(139, 94, 52, 0.09);
+  --color-brand-border: rgba(139, 94, 52, 0.18);
+
+  --color-gold: #b9823d;
+  --color-gold-light: #ead2ad;
+  --color-gold-dim: rgba(185, 130, 61, 0.12);
+  --color-gold-border: rgba(185, 130, 61, 0.2);
+  --color-gold-glow: rgba(185, 130, 61, 0.24);
+
+  --color-anchor: #9f6b3d;
+  --color-anchor-light: #dfbd92;
+  --color-anchor-dim: rgba(159, 107, 61, 0.1);
+  --color-anchor-border: rgba(159, 107, 61, 0.2);
+  --color-anchor-glow: rgba(159, 107, 61, 0.25);
+
+  --color-success: #4f8f63;
+  --color-success-light: #e5f1e7;
+  --color-success-dim: rgba(79, 143, 99, 0.12);
+  --color-warning: #b7791f;
+  --color-warning-light: #faedd2;
+  --color-warning-dim: rgba(183, 121, 31, 0.12);
+  --color-danger: #b45346;
+  --color-danger-light: #f6ded9;
+  --color-danger-dim: rgba(180, 83, 70, 0.12);
+  --color-info: #5d7f9c;
+  --color-info-light: #e4edf3;
+  --color-info-dim: rgba(93, 127, 156, 0.12);
+  --color-purple: #8a6f9e;
+  --color-purple-light: #eee6f3;
+  --color-purple-dim: rgba(138, 111, 158, 0.12);
+
+  --app-text-primary: #2f251c;
+  --app-text-secondary: #5d4b3d;
+  --app-text-muted: #827064;
+  --app-text-inverse: #fffaf0;
+
+  --text-color-1: var(--app-text-primary);
+  --text-color-2: var(--app-text-secondary);
+  --text-color-3: var(--app-text-muted);
+
+  --app-page-bg: #f4ead8;
+  --app-surface: #fffaf0;
+  --app-surface-raised: #fffdf7;
+  --app-surface-subtle: #fbf2e3;
+  --app-input-bg: #fffdf7;
+
+  --app-border: rgba(94, 69, 45, 0.14);
+  --app-border-strong: rgba(94, 69, 45, 0.22);
+  --app-divider: rgba(94, 69, 45, 0.08);
+
+  --app-shadow-sm: 0 1px 3px rgba(94, 69, 45, 0.08);
+  --app-shadow-md: 0 6px 18px rgba(94, 69, 45, 0.09);
+  --app-shadow-lg: 0 14px 34px rgba(94, 69, 45, 0.12);
+  --app-shadow-hover: 0 12px 28px rgba(94, 69, 45, 0.14);
+
+  --aitext-split-border: rgba(94, 69, 45, 0.1);
+  --aitext-panel-muted: #fbf2e3;
+
+  --stats-bar-gradient: linear-gradient(135deg, #6f4728 0%, #8b5e34 50%, #b9823d 100%);
+  --stats-bar-border-bottom: 1px solid rgba(94, 69, 45, 0.12);
+
+  --nav-hero-text: #fffaf0;
+  --nav-hero-text-muted: rgba(255, 250, 240, 0.86);
+  --nav-hero-pill-bg-top: rgba(255, 250, 240, 0.22);
+  --nav-hero-pill-bg-bottom: rgba(255, 250, 240, 0.08);
+  --nav-hero-pill-border: rgba(255, 250, 240, 0.28);
+  --nav-hero-shadow: 0 1px 0 rgba(255, 250, 240, 0.14) inset;
+
+  --tab-track-bg: linear-gradient(135deg, var(--color-brand), var(--color-brand-hover));
+  --tab-track-shadow: 0 2px 10px var(--color-brand-border), 0 1px 3px var(--color-brand-border);
+  --tab-active-color: var(--app-text-inverse);
+  --tab-inactive-color: var(--app-text-secondary);
+  --tab-inactive-hover-color: var(--app-text-primary);
+  --profile-active-bg: var(--color-brand-light);
+  --runtime-model-color: var(--color-brand);
+  --runtime-mock-model-color: var(--color-gold);
+
+  color-scheme: light;
+}
+
+/* 舒适主题：深海。避开纯黑，高对比但不刺眼，适合夜间沉浸写作。 */
+[data-theme='ocean'] {
+  --color-brand: #76d1c8;
+  --color-brand-hover: #9be1da;
+  --color-brand-pressed: #4db7ad;
+  --color-brand-suppl: #b7eee8;
+  --color-brand-light: rgba(118, 209, 200, 0.11);
+  --color-brand-border: rgba(118, 209, 200, 0.2);
+
+  --color-gold: #d5b879;
+  --color-gold-light: #ead7a8;
+  --color-gold-dim: rgba(213, 184, 121, 0.1);
+  --color-gold-border: rgba(213, 184, 121, 0.18);
+  --color-gold-glow: rgba(213, 184, 121, 0.28);
+
+  --color-anchor: #76d1c8;
+  --color-anchor-light: #b7eee8;
+  --color-anchor-dim: rgba(118, 209, 200, 0.1);
+  --color-anchor-border: rgba(118, 209, 200, 0.2);
+  --color-anchor-glow: rgba(118, 209, 200, 0.32);
+
+  --app-text-primary: #e7f3f1;
+  --app-text-secondary: #b8cfcc;
+  --app-text-muted: #7f9f9b;
+  --app-text-inverse: #081316;
+
+  --text-color-1: var(--app-text-primary);
+  --text-color-2: var(--app-text-secondary);
+  --text-color-3: var(--app-text-muted);
+
+  --app-page-bg: #0b171b;
+  --app-surface: #132328;
+  --app-surface-raised: #1a3036;
+  --app-surface-subtle: #0e1d22;
+  --app-input-bg: #0e1d22;
+
+  --app-border: rgba(118, 209, 200, 0.12);
+  --app-border-strong: rgba(118, 209, 200, 0.2);
+  --app-divider: rgba(118, 209, 200, 0.08);
+
+  --app-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.28);
+  --app-shadow-md: 0 6px 18px rgba(0, 0, 0, 0.3), 0 0 24px rgba(118, 209, 200, 0.03);
+  --app-shadow-lg: 0 14px 36px rgba(0, 0, 0, 0.36), 0 0 42px rgba(118, 209, 200, 0.05);
+  --app-shadow-hover: 0 12px 30px rgba(0, 0, 0, 0.42), 0 0 34px rgba(118, 209, 200, 0.08);
+
+  --aitext-split-border: rgba(118, 209, 200, 0.1);
+  --aitext-panel-muted: #0e1d22;
+
+  --stats-bar-gradient: linear-gradient(135deg, #0e1d22 0%, #163239 54%, #24515a 100%);
+  --stats-bar-border-bottom: 1px solid rgba(118, 209, 200, 0.14);
+
+  --nav-hero-text: #f0fffc;
+  --nav-hero-text-muted: rgba(240, 255, 252, 0.8);
+  --nav-hero-pill-bg-top: rgba(118, 209, 200, 0.18);
+  --nav-hero-pill-bg-bottom: rgba(8, 19, 22, 0.36);
+  --nav-hero-pill-border: rgba(118, 209, 200, 0.3);
+  --nav-hero-shadow: 0 1px 0 rgba(183, 238, 232, 0.12) inset;
+
+  --tab-track-bg: linear-gradient(135deg, var(--color-brand-pressed), var(--color-brand));
+  --tab-track-shadow: 0 2px 12px var(--color-brand-border), 0 1px 3px rgba(0, 0, 0, 0.22);
+  --tab-active-color: var(--app-text-inverse);
+  --tab-inactive-color: var(--app-text-secondary);
+  --tab-inactive-hover-color: var(--app-text-primary);
+  --profile-active-bg: var(--color-brand-light);
+  --runtime-model-color: var(--color-brand);
+  --runtime-mock-model-color: var(--color-gold);
+
+  --color-success: #7dd3a8;
+  --color-success-light: rgba(125, 211, 168, 0.14);
+  --color-success-dim: rgba(125, 211, 168, 0.08);
+  --color-warning: #e6bf6a;
+  --color-warning-light: rgba(230, 191, 106, 0.14);
+  --color-warning-dim: rgba(230, 191, 106, 0.08);
+  --color-danger: #e58b83;
+  --color-danger-light: rgba(229, 139, 131, 0.14);
+  --color-danger-dim: rgba(229, 139, 131, 0.08);
+  --color-info: #7bb9dd;
+  --color-info-light: rgba(123, 185, 221, 0.14);
+  --color-info-dim: rgba(123, 185, 221, 0.08);
+  --color-purple: #b6a4e9;
+  --color-purple-light: rgba(182, 164, 233, 0.14);
+  --color-purple-dim: rgba(182, 164, 233, 0.08);
+
+  color-scheme: dark;
+}
+
 /* ═══════════════════════════════════════════════════
    通用组件样式（使用变量，自动适配亮/暗/黑金）
    ═══════════════════════════════════════════════════ */

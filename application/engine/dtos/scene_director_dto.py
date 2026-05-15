@@ -110,3 +110,9 @@ class ContextRetrieveResponse(BaseModel):
     layer2: Dict[str, Any]
     layer3: Dict[str, Any]
     token_usage: Dict[str, int]
+    authority_lock: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    hard_conflicts: list[str] = Field(default_factory=list)
+    selected_authority: list[str] = Field(default_factory=list)
+    outline_source: str = ""
+    selected_outline: str = ""

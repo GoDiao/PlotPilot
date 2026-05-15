@@ -269,15 +269,14 @@ class ContextBuilder:
                 ),
             ]
 
-        # 调整字数分配（保守策略）
-        # LLM 倾向于超出字数要求，因此 prompt 中只要求目标的 75%
-        # 配合 max_tokens = target × 1.1（硬性上限），强制控制字数
+        # 调整字数分配：全托管需要真实达到章节目标字数。
+        # 旧版只要求目标的 75%，再叠加较低 max_tokens，会系统性短章。
         total_words = sum(b.target_words for b in beats)
-        prompt_target_ratio = 0.75  # prompt 中只要求 75%
+        prompt_target_ratio = 1.0
         if total_words != target_chapter_words:
             ratio = (target_chapter_words * prompt_target_ratio) / total_words
             for beat in beats:
-                beat.target_words = int(beat.target_words * ratio)
+                beat.target_words = max(300, int(beat.target_words * ratio))
 
         logger.info(
             f"节拍放大器：将大纲拆分为 {len(beats)} 个节拍，"

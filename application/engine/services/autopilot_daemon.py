@@ -24,6 +24,8 @@ from application.engine.services.context_builder import ContextBuilder
 from application.engine.services.background_task_service import BackgroundTaskService, TaskType
 from application.workflows.auto_novel_generation_workflow import AutoNovelGenerationWorkflow
 from application.engine.services.chapter_aftermath_pipeline import ChapterAftermathPipeline
+from application.core.services.chapter_quality_gate_service import ChapterQualityGateService
+from application.core.services.chapter_service import ChapterService
 from application.engine.services.style_constraint_builder import build_style_summary
 from application.ai.llm_output_sanitize import strip_reasoning_artifacts
 from application.ai.llm_retry_policy import LLM_MAX_TOTAL_ATTEMPTS
@@ -46,6 +48,12 @@ def _coerce_word_count_to_int(wc: Any) -> int:
 VOICE_REWRITE_MAX_ATTEMPTS = LLM_MAX_TOTAL_ATTEMPTS
 VOICE_REWRITE_THRESHOLD = 0.68
 VOICE_WARNING_THRESHOLD_FALLBACK = 0.75
+AUTOPILOT_MIN_COMPLETION_RATIO = 0.8
+AUTOPILOT_MIN_COMPLETION_FLOOR = 1200
+AUTOPILOT_TOP_UP_MAX_ATTEMPTS = 2
+AUTOPILOT_MIN_BEAT_RATIO = 0.45
+AUTOPILOT_MIN_BEAT_FLOOR = 160
+AUTOPILOT_BEAT_REPAIR_MAX_ATTEMPTS = 2
 
 
 class AutopilotDaemon:
@@ -60,6 +68,7 @@ class AutopilotDaemon:
         planning_service,
         story_node_repo,
         chapter_repository,
+        chapter_review_repository=None,
         poll_interval: int = 5,
         voice_drift_service=None,
         circuit_breaker=None,
@@ -76,6 +85,9 @@ class AutopilotDaemon:
         self.planning_service = planning_service
         self.story_node_repo = story_node_repo
         self.chapter_repository = chapter_repository
+        self.chapter_quality_gate_service = ChapterQualityGateService(
+            ChapterService(chapter_repository, novel_repository, chapter_review_repository)
+        )
         self.poll_interval = poll_interval
         self.voice_drift_service = voice_drift_service
         self.circuit_breaker = circuit_breaker
@@ -444,9 +456,16 @@ class AutopilotDaemon:
             chapters_data: List[Dict[str, Any]] = raw if isinstance(raw, list) else []
             if not chapters_data:
                 logger.warning(
-                    f"[{novel.novel_id}] 幕 {target_act_number} 未得到有效章节规划，使用占位章节落库"
+                    f"[{novel.novel_id}] 幕 {target_act_number} 未得到有效章节规划，停靠等待重试或人工规划"
                 )
-                chapters_data = self._fallback_act_chapters_plan(target_act, chapter_budget)
+                novel.autopilot_status = AutopilotStatus.ERROR
+                novel.current_stage = NovelStage.PAUSED_FOR_REVIEW
+                novel.audit_progress = (
+                    f"第 {target_act_number} 幕章节规划失败：未获得可写的大纲/蓝图。"
+                    "已停靠，避免使用占位大纲生成短章。请重试幕级规划或手动补全蓝图后恢复。"
+                )
+                self._flush_novel(novel)
+                return
 
             await self.planning_service.confirm_act_planning(
                 act_id=target_act.id,
@@ -525,6 +544,7 @@ class AutopilotDaemon:
 
         chapter_num = next_chapter_node.number
         outline = next_chapter_node.outline or next_chapter_node.description or next_chapter_node.title
+        chapter_blueprint = self._get_chapter_blueprint(next_chapter_node)
 
         # 合并分章叙事节拍（beat_sections）到 outline，让 AI 按用户设定的叙事节拍生成
         if self.knowledge_service:
@@ -543,7 +563,18 @@ class AutopilotDaemon:
                 logger.warning(f"[{novel.novel_id}] 读取分章叙事失败，使用原始大纲：{_e}")
 
         if needs_buffer:
-            outline = f"【缓冲章：日常过渡】{outline}。主角战后休整，与配角闲聊，展示收获，节奏轻松。"
+            if self._blueprint_requests_cooldown(chapter_blueprint):
+                outline = (
+                    "【计划缓冲章】上一章已达到高张力，本章蓝图要求余波/铺垫/过渡。"
+                    "请重点写后果、人物反应、信息整理和下一章承接，不要继续盲目加压。\n"
+                    f"{outline}"
+                )
+            else:
+                outline = (
+                    "【高张力后续提醒】上一章已达到高张力，但本章未被蓝图标记为缓冲章。"
+                    "请按本章目标张力执行，不要机械降压或机械加压。\n"
+                    f"{outline}"
+                )
 
         logger.info(f"[{novel.novel_id}] 📖 开始写第 {chapter_num} 章：{outline[:60]}...")
         logger.info(f"[{novel.novel_id}]    进度: {current_chapters}/{target_chapters} 章（目标）")
@@ -657,7 +688,7 @@ class AutopilotDaemon:
                     # - prompt 中要求目标的 75%（在 context_builder 中处理）
                     # - max_tokens = prompt 目标 × 1.1（硬性上限，超出会被截断）
                     # - 最终输出应接近 prompt 目标，略低于原始目标
-                    max_tokens = int(beat.target_words * 1.1)
+                    max_tokens = max(512, int(beat.target_words * 2.2))
                     cfg = GenerationConfig(max_tokens=max_tokens, temperature=0.85)
                     beat_content = await self._stream_llm_with_stop_watch(prompt, cfg, novel=novel)
                 else:
@@ -670,6 +701,23 @@ class AutopilotDaemon:
                         voice_anchors=voice_anchors,
                         chapter_draft_so_far=chapter_content,
                     )
+
+                beat_content = await self._repair_short_beat(
+                    novel=novel,
+                    chapter_num=chapter_num,
+                    outline=outline,
+                    beat=beat,
+                    beat_index=i,
+                    total_beats=len(beats),
+                    beat_content=beat_content,
+                    chapter_draft_so_far=chapter_content,
+                    context=bundle["context"] if use_wf else context,
+                    storyline_context=bundle["storyline_context"] if use_wf else "",
+                    plot_tension=bundle["plot_tension"] if use_wf else "",
+                    style_summary=bundle["style_summary"] if use_wf else "",
+                    voice_anchors=voice_anchors,
+                    use_workflow=use_wf,
+                )
 
                 if beat_content.strip():
                     # V8: 截断检测与自动续写（软着陆）
@@ -710,7 +758,8 @@ class AutopilotDaemon:
                     style_summary=bundle["style_summary"],
                     voice_anchors=voice_anchors,
                 )
-                cfg = GenerationConfig(max_tokens=3000, temperature=0.85)
+                target_word_count = int(getattr(novel, "target_words_per_chapter", None) or 2500)
+                cfg = GenerationConfig(max_tokens=max(3000, int(target_word_count * 2.2)), temperature=0.85)
                 beat_content = await self._stream_llm_with_stop_watch(prompt, cfg, novel=novel)
             else:
                 beat_content = await self._stream_one_beat(
@@ -741,6 +790,37 @@ class AutopilotDaemon:
         # 7. 章节完成，标记 completed（带字数验证）
         actual_word_count = len(chapter_content.strip())
         target_word_count = int(getattr(novel, "target_words_per_chapter", None) or 2500)
+        min_complete_words = self._min_completed_words(target_word_count)
+
+        if actual_word_count < min_complete_words:
+            logger.warning(
+                f"[{novel.novel_id}] 第 {chapter_num} 章未达完章门禁：{actual_word_count} 字，"
+                f"最低需 {min_complete_words} 字（目标 {target_word_count} 字），尝试补写"
+            )
+            chapter_content = await self._top_up_short_chapter(
+                novel=novel,
+                chapter_num=chapter_num,
+                outline=outline,
+                chapter_content=chapter_content,
+                target_word_count=target_word_count,
+                min_complete_words=min_complete_words,
+            )
+            actual_word_count = len(chapter_content.strip())
+            await self._upsert_chapter_content(novel, next_chapter_node, chapter_content, status="draft")
+
+        if actual_word_count < min_complete_words:
+            logger.warning(
+                f"[{novel.novel_id}] 第 {chapter_num} 章仍未达完章门禁：{actual_word_count}/{min_complete_words} 字，"
+                "保留草稿并停靠，不标记 completed"
+            )
+            novel.autopilot_status = AutopilotStatus.ERROR
+            novel.current_stage = NovelStage.PAUSED_FOR_REVIEW
+            novel.audit_progress = (
+                f"第 {chapter_num} 章字数不足：{actual_word_count}/{target_word_count} 字，"
+                "已保留草稿，请人工补写或调整目标字数后恢复。"
+            )
+            self._flush_novel(novel)
+            return
 
         # 字数警告：低于目标 60% 或超出 120% 时发出警告
         if actual_word_count < target_word_count * 0.6:
@@ -758,6 +838,7 @@ class AutopilotDaemon:
                 f"[{novel.novel_id}] 第 {chapter_num} 章字数：{actual_word_count} 字 (目标 {target_word_count})"
             )
 
+        self._create_rewrite_snapshot_safe(novel.novel_id.value, chapter_num, "autopilot_complete")
         await self._upsert_chapter_content(novel, next_chapter_node, chapter_content, status="completed")
 
         # 8. 更新计数器，重置节拍索引
@@ -783,6 +864,18 @@ class AutopilotDaemon:
         if not completed:
             return None
         return max(c.number for c in completed)
+
+    def _create_rewrite_snapshot_safe(self, novel_id: str, chapter_number: int, reason: str) -> None:
+        try:
+            from application.core.services.chapter_rewrite_service import ChapterRewriteService
+
+            ChapterRewriteService(self.novel_repository.db, self.story_node_repo).create_prewrite_snapshot(
+                novel_id,
+                chapter_number,
+                reason,
+            )
+        except Exception as exc:
+            logger.warning("[%s] 创建章节重写快照失败 ch=%s: %s", novel_id, chapter_number, exc)
 
     async def _handle_auditing(self, novel: Novel):
         """处理审计（含张力打分）"""
@@ -822,6 +915,33 @@ class AutopilotDaemon:
             content,
             drift_result,
         )
+
+        pre_gate = self.chapter_quality_gate_service.evaluate(novel.novel_id.value, chapter_num)
+        if pre_gate.issues:
+            novel.last_audit_issues = [
+                {
+                    "code": issue.code,
+                    "severity": issue.severity,
+                    "message": issue.message,
+                    "action": issue.action,
+                }
+                for issue in pre_gate.issues
+            ]
+
+        autopilot_mode = getattr(novel, "autopilot_mode", "full_draft") or "full_draft"
+        if autopilot_mode in {"quality_first", "strict_consistency"} and pre_gate.gate_status in {"blocked", "needs_revision"}:
+            novel.current_stage = NovelStage.PAUSED_FOR_REVIEW
+            novel.audit_progress = None
+            self.chapter_quality_gate_service.mark_revision_required(
+                novel.novel_id.value,
+                chapter_num,
+                "监管式自动驾驶停靠：章节质量门禁未通过，章后抽取未执行，等待作者确认或修订。",
+            )
+            self._flush_novel(novel)
+            logger.warning(
+                f"[{novel.novel_id}] 监管式自动驾驶预入库停靠：第 {chapter_num} 章门禁={pre_gate.gate_status}"
+            )
+            return
 
         # 2. 统一章后管线：叙事/向量、文风（一次）、KG 推断；三元组与伏笔在叙事同步单次 LLM 中落库
         novel.audit_progress = "aftermath_pipeline"
@@ -895,6 +1015,18 @@ class AutopilotDaemon:
             logger.info(
                 f"[{novel.novel_id}] 文风告警来自历史窗口，当前章节相似度未低于阈值，保留本章"
             )
+
+        quality_gate = self.chapter_quality_gate_service.evaluate(novel.novel_id.value, chapter_num)
+        if quality_gate.issues:
+            novel.last_audit_issues = [
+                {
+                    "code": issue.code,
+                    "severity": issue.severity,
+                    "message": issue.message,
+                    "action": issue.action,
+                }
+                for issue in quality_gate.issues
+            ]
 
         novel.current_stage = NovelStage.WRITING
         novel.audit_progress = None  # 清除审计进度
@@ -1403,6 +1535,174 @@ class AutopilotDaemon:
         # 续写失败，返回原内容（至少加个句号让它看起来完整）
         return stripped + "。"
 
+    def _min_completed_words(self, target_word_count: int) -> int:
+        """Minimum length before autopilot may mark a chapter completed."""
+        target = max(int(target_word_count or 0), 1)
+        return min(target, max(AUTOPILOT_MIN_COMPLETION_FLOOR, int(target * AUTOPILOT_MIN_COMPLETION_RATIO)))
+
+    def _min_beat_words(self, target_words: int) -> int:
+        """Minimum useful output for one beat before it can advance."""
+        target = max(int(target_words or 0), 1)
+        return min(target, max(AUTOPILOT_MIN_BEAT_FLOOR, int(target * AUTOPILOT_MIN_BEAT_RATIO)))
+
+    async def _repair_short_beat(
+        self,
+        *,
+        novel: Novel,
+        chapter_num: int,
+        outline: str,
+        beat: "Beat",
+        beat_index: int,
+        total_beats: int,
+        beat_content: str,
+        chapter_draft_so_far: str,
+        context: str,
+        storyline_context: str,
+        plot_tension: str,
+        style_summary: str,
+        voice_anchors: str,
+        use_workflow: bool,
+    ) -> str:
+        """Retry a beat that produced empty or summary-like text."""
+        content = (beat_content or "").strip()
+        min_words = self._min_beat_words(getattr(beat, "target_words", 0))
+        if len(content) >= min_words:
+            return content
+
+        for attempt in range(AUTOPILOT_BEAT_REPAIR_MAX_ATTEMPTS):
+            if len(content) >= min_words or not self._is_still_running(novel):
+                return content
+            logger.warning(
+                "[%s] 第 %s 章节拍 %s/%s 输出过短：%s/%s 字，重试补写",
+                novel.novel_id,
+                chapter_num,
+                beat_index + 1,
+                total_beats,
+                len(content),
+                min_words,
+            )
+            repair_instruction = (
+                f"\n\n【节拍重写/补写要求】\n"
+                f"上一轮该节拍只写出 {len(content)} 字，未达到正文展开要求。"
+                f"请重新撰写或继续补足本节拍，目标约 {beat.target_words} 字，至少 {min_words} 字。"
+                "必须写成小说正文场景：动作、对话、环境、心理至少展开两项；不要解释，不要摘要。"
+            )
+            beat_prompt = self.context_builder.build_beat_prompt(beat, beat_index, total_beats) + repair_instruction
+            if content:
+                beat_prompt += f"\n\n【上一轮过短文本，可承接但不要重复】\n{content[-800:]}"
+
+            try:
+                if use_workflow:
+                    prompt = self.chapter_workflow.build_chapter_prompt(
+                        context,
+                        outline,
+                        storyline_context=storyline_context,
+                        plot_tension=plot_tension,
+                        style_summary=style_summary,
+                        beat_prompt=beat_prompt,
+                        beat_index=beat_index,
+                        total_beats=total_beats,
+                        beat_target_words=int(beat.target_words),
+                        voice_anchors=voice_anchors,
+                        chapter_draft_so_far=chapter_draft_so_far,
+                    )
+                    cfg = GenerationConfig(
+                        max_tokens=max(1000, int(beat.target_words * 2.5)),
+                        temperature=0.88,
+                    )
+                    repaired = await self._stream_llm_with_stop_watch(prompt, cfg, novel=novel)
+                else:
+                    repaired = await self._stream_one_beat(
+                        outline,
+                        context,
+                        beat_prompt,
+                        beat,
+                        novel=novel,
+                        voice_anchors=voice_anchors,
+                        chapter_draft_so_far=chapter_draft_so_far,
+                    )
+            except Exception as exc:
+                logger.warning(
+                    "[%s] 第 %s 章节拍 %s/%s 重试失败：%s",
+                    novel.novel_id,
+                    chapter_num,
+                    beat_index + 1,
+                    total_beats,
+                    exc,
+                )
+                return content
+            repaired = (repaired or "").strip()
+            if len(repaired) > len(content):
+                content = repaired
+        return content
+
+    async def _top_up_short_chapter(
+        self,
+        novel: Novel,
+        chapter_num: int,
+        outline: str,
+        chapter_content: str,
+        target_word_count: int,
+        min_complete_words: int,
+    ) -> str:
+        """Continue an under-length chapter instead of prematurely accepting it."""
+        content = (chapter_content or "").strip()
+        for attempt in range(AUTOPILOT_TOP_UP_MAX_ATTEMPTS):
+            current_words = len(content)
+            if current_words >= min_complete_words:
+                return content
+            if not self._is_still_running(novel):
+                return content
+
+            remaining_to_min = max(min_complete_words - current_words, 300)
+            remaining_to_target = max(target_word_count - current_words, remaining_to_min)
+            ask_words = min(max(remaining_to_min + 200, 500), max(remaining_to_target, 500))
+            prompt = Prompt(
+                system=(
+                    "你是长篇小说续写助手。任务是承接已有正文继续写，补足章节体量与叙事收束。"
+                    "不得重写开头，不得总结说明，不得输出标题。"
+                ),
+                user=f"""【章节号】第 {chapter_num} 章
+【本章大纲】
+{outline}
+
+【已有正文末尾】
+{content[-1800:]}
+
+【补写要求】
+1. 只续写后续正文，承接最后一句继续。
+2. 本轮补写约 {ask_words} 字，补足场景、行动、对话、心理与章末钩子。
+3. 目标全章约 {target_word_count} 字；至少达到 {min_complete_words} 字后才可以自然收束。
+4. 如果本章事件尚未完成，继续推进，不要草草用一句话结束。
+5. 最后一段必须有完整句号或感叹号/问号。
+
+请直接续写正文：""",
+            )
+            cfg = GenerationConfig(max_tokens=max(1200, int(ask_words * 2.2)), temperature=0.82)
+            try:
+                addition = await self._stream_llm_with_stop_watch(prompt, cfg, novel=novel)
+            except Exception as exc:
+                logger.warning("[%s] 第 %s 章补写失败：%s", novel.novel_id, chapter_num, exc)
+                return content
+            addition = (addition or "").strip()
+            if not addition:
+                return content
+            addition = await self._ensure_complete_ending(
+                addition, None, outline, content, novel
+            )
+            content = content + ("\n\n" if content else "") + addition.strip()
+            logger.info(
+                "[%s] 第 %s 章补写 %s/%s：当前 %s 字，最低 %s 字，目标 %s 字",
+                novel.novel_id,
+                chapter_num,
+                attempt + 1,
+                AUTOPILOT_TOP_UP_MAX_ATTEMPTS,
+                len(content),
+                min_complete_words,
+                target_word_count,
+            )
+        return content
+
     async def _stream_one_beat(
         self,
         outline,
@@ -1444,7 +1744,7 @@ class AutopilotDaemon:
         user_parts.append("\n\n开始撰写：")
 
         # 字数控制策略（与主流程一致）
-        max_tokens = int(beat.target_words * 1.1) if beat else 3000
+        max_tokens = max(512, int(beat.target_words * 2.2)) if beat else 3000
 
         prompt = Prompt(system=system, user="\n".join(user_parts))
         config = GenerationConfig(max_tokens=max_tokens, temperature=0.85)
@@ -1572,6 +1872,23 @@ class AutopilotDaemon:
             if not chapter or chapter.status.value != "completed":
                 return node
         return None
+
+    def _get_chapter_blueprint(self, chapter_node) -> Dict[str, Any]:
+        metadata = getattr(chapter_node, "metadata", None) or {}
+        blueprint = metadata.get("blueprint") or {}
+        return blueprint if isinstance(blueprint, dict) else {}
+
+    def _blueprint_requests_cooldown(self, blueprint: Dict[str, Any]) -> bool:
+        function = str(blueprint.get("narrative_function") or "").strip().lower()
+        phase = str(blueprint.get("tension_phase") or "").strip().lower()
+        try:
+            target_tension = int(float(blueprint.get("target_tension")))
+        except (TypeError, ValueError):
+            target_tension = 0
+        cooldown_keywords = ("cooldown", "transition", "aftermath", "setup", "余波", "缓冲", "过渡", "铺垫")
+        return (target_tension > 0 and target_tension <= 4) or any(
+            keyword in function or keyword in phase for keyword in cooldown_keywords
+        )
 
     async def _current_act_fully_written(self, novel) -> bool:
         """检查当前幕是否已全部写完"""

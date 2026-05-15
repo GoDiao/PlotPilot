@@ -39,6 +39,7 @@ class Novel(BaseEntity):
         stage: NovelStage = NovelStage.PLANNING,
         autopilot_status: AutopilotStatus = AutopilotStatus.STOPPED,
         auto_approve_mode: bool = False,
+        autopilot_mode: str = "full_draft",
         current_stage: NovelStage = NovelStage.PLANNING,
         current_act: int = 0,
         current_chapter_in_act: int = 0,
@@ -75,6 +76,7 @@ class Novel(BaseEntity):
         # 自动驾驶状态
         self.autopilot_status = autopilot_status
         self.auto_approve_mode = auto_approve_mode  # 全自动模式：跳过所有人工审阅
+        self.autopilot_mode = autopilot_mode  # 全托管/监管式自动驾驶策略
         self.current_stage = current_stage
         self.current_act = current_act
         self.current_chapter_in_act = current_chapter_in_act

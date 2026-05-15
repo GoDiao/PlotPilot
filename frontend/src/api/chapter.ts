@@ -31,11 +31,87 @@ export interface ChapterStructureDTO {
   pacing: string
 }
 
+export interface ChapterGateIssueDTO {
+  code: string
+  severity: 'blocker' | 'major' | 'minor' | string
+  message: string
+  action: string
+}
+
+export interface ChapterQualityGateDTO {
+  novel_id: string
+  chapter_number: number
+  gate_status: 'pass' | 'needs_revision' | 'blocked' | 'review_pending' | string
+  chapter_status: string
+  review_status: string
+  can_enter_next: boolean
+  can_lock: boolean
+  word_count: number
+  issues: ChapterGateIssueDTO[]
+  suggestions: string[]
+}
+
+export interface ChapterIssueTaskDTO {
+  id: string
+  source: string
+  code: string
+  severity: string
+  title: string
+  evidence: string
+  basis: string
+  confidence: number
+  recommended_action: string
+}
+
+export interface ChapterPreflightDTO {
+  novel_id: string
+  chapter_number: number
+  outline_source: string
+  selected_outline: string
+  authority_lock: string[]
+  warnings: string[]
+  hard_conflicts: string[]
+  selected_authority: string[]
+}
+
+export interface ChapterMemoryEntryDTO {
+  id: string
+  novel_id: string
+  chapter_number: number
+  memory_layer: 'draft' | 'pending' | 'canonical'
+  source: string
+  entry_type: string
+  content: string
+  payload: Record<string, unknown>
+  status: string
+  issue_id?: string
+}
+
+export interface ChapterRevisionDraftDTO {
+  id: string
+  novel_id: string
+  chapter_number: number
+  source: string
+  variant_label: string
+  original_content: string
+  revised_content: string
+  diff_text: string
+  status: string
+  created_at: string
+}
+
 export interface ChapterReviewAiResponse {
   ok: boolean
   status: string
   memo: string
   saved: boolean
+}
+
+export interface ChapterRewritePreviewDTO {
+  has_snapshot: boolean
+  mode: 'snapshot_restore' | 'soft_reset' | string
+  snapshot?: Record<string, unknown> | null
+  warnings: string[]
 }
 
 export const chapterApi = {
@@ -87,6 +163,74 @@ export const chapterApi = {
    */
   getChapterStructure: (novelId: string, chapterNumber: number) =>
     apiClient.get<ChapterStructureDTO>(`/novels/${novelId}/chapters/${chapterNumber}/structure`) as Promise<ChapterStructureDTO>,
+
+  /**
+   * Get chapter quality gate
+   * GET /api/v1/novels/{novelId}/chapters/{chapterNumber}/quality-gate
+   */
+  getQualityGate: (novelId: string, chapterNumber: number) =>
+    apiClient.get<ChapterQualityGateDTO>(`/novels/${novelId}/chapters/${chapterNumber}/quality-gate`) as Promise<ChapterQualityGateDTO>,
+
+  /**
+   * List actionable chapter issue tasks
+   * GET /api/v1/novels/{novelId}/chapters/{chapterNumber}/issue-tasks
+   */
+  listIssueTasks: (novelId: string, chapterNumber: number) =>
+    apiClient.get<ChapterIssueTaskDTO[]>(`/novels/${novelId}/chapters/${chapterNumber}/issue-tasks`) as Promise<ChapterIssueTaskDTO[]>,
+
+  /**
+   * Run pre-generation context health check
+   * POST /api/v1/novels/{novelId}/chapters/{chapterNumber}/preflight
+   */
+  preflight: (novelId: string, chapterNumber: number, outline = '', contextPreview: Record<string, unknown> = {}) =>
+    apiClient.post<ChapterPreflightDTO>(`/novels/${novelId}/chapters/${chapterNumber}/preflight`, {
+      outline,
+      context_preview: contextPreview,
+    }) as Promise<ChapterPreflightDTO>,
+
+  /**
+   * Lock chapter after author review
+   * POST /api/v1/novels/{novelId}/chapters/{chapterNumber}/lock
+   */
+  lockChapter: (novelId: string, chapterNumber: number) =>
+    apiClient.post<ChapterQualityGateDTO>(`/novels/${novelId}/chapters/${chapterNumber}/lock`) as Promise<ChapterQualityGateDTO>,
+
+  /**
+   * Mark chapter as requiring revision
+   * POST /api/v1/novels/{novelId}/chapters/{chapterNumber}/revision-required
+   */
+  markRevisionRequired: (novelId: string, chapterNumber: number, memo = '') =>
+    apiClient.post<ChapterQualityGateDTO>(`/novels/${novelId}/chapters/${chapterNumber}/revision-required`, { memo }) as Promise<ChapterQualityGateDTO>,
+
+  listMemory: (novelId: string, chapterNumber: number, memoryLayer?: string) =>
+    apiClient.get<ChapterMemoryEntryDTO[]>(`/novels/${novelId}/chapters/${chapterNumber}/memory`, {
+      params: memoryLayer ? { memory_layer: memoryLayer } : undefined,
+    }) as Promise<ChapterMemoryEntryDTO[]>,
+
+  applyIssueAction: (novelId: string, chapterNumber: number, issueId: string, action: string, memo = '') =>
+    apiClient.post(`/novels/${novelId}/chapters/${chapterNumber}/issue-actions`, {
+      issue_id: issueId,
+      action,
+      memo,
+    }) as Promise<Record<string, unknown>>,
+
+  listRevisionDrafts: (novelId: string, chapterNumber: number) =>
+    apiClient.get<ChapterRevisionDraftDTO[]>(`/novels/${novelId}/chapters/${chapterNumber}/revision-drafts`) as Promise<ChapterRevisionDraftDTO[]>,
+
+  applyRevisionDraft: (novelId: string, chapterNumber: number, draftId: string) =>
+    apiClient.post(`/novels/${novelId}/chapters/${chapterNumber}/revision-drafts/apply`, { draft_id: draftId }) as Promise<Record<string, unknown>>,
+
+  rollbackLatest: (novelId: string, chapterNumber: number) =>
+    apiClient.post(`/novels/${novelId}/chapters/${chapterNumber}/rollback-latest`) as Promise<Record<string, unknown>>,
+
+  previewRewriteReset: (novelId: string, chapterNumber: number) =>
+    apiClient.get<ChapterRewritePreviewDTO>(`/novels/${novelId}/chapters/${chapterNumber}/rewrite/preview`) as Promise<ChapterRewritePreviewDTO>,
+
+  resetForRewrite: (novelId: string, chapterNumber: number, restoreContent = false) =>
+    apiClient.post<Record<string, unknown>>(
+      `/novels/${novelId}/chapters/${chapterNumber}/rewrite/reset`,
+      { restore_content: restoreContent },
+    ) as Promise<Record<string, unknown>>,
 
   /**
    * 确保章节在正文库中存在；若不存在则创建空白记录

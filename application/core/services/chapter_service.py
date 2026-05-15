@@ -221,7 +221,11 @@ class ChapterService:
         # 同步更新章节状态：approved -> completed, reviewed -> reviewing
         status_to_chapter_status = {
             "approved": ChapterStatus.COMPLETED,
+            "locked": ChapterStatus.COMPLETED,
+            "synced": ChapterStatus.COMPLETED,
             "reviewed": ChapterStatus.REVIEWING,
+            "review_pending": ChapterStatus.REVIEWING,
+            "revision_required": ChapterStatus.REVIEWING,
             "draft": ChapterStatus.DRAFT,
         }
         new_chapter_status = status_to_chapter_status.get(status)

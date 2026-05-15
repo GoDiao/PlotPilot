@@ -292,6 +292,32 @@ def get_chapter_service() -> ChapterService:
     )
 
 
+def get_chapter_quality_gate_service():
+    """获取章节质量门禁服务。"""
+    from application.core.services.chapter_quality_gate_service import ChapterQualityGateService
+
+    return ChapterQualityGateService(get_chapter_service(), get_story_node_repository())
+
+
+def get_trustworthy_creation_service():
+    """获取可信创作闭环服务。"""
+    from application.core.services.trustworthy_creation_service import TrustworthyCreationService
+
+    return TrustworthyCreationService(
+        get_database(),
+        get_chapter_service(),
+        get_llm_service(),
+        get_story_node_repository(),
+    )
+
+
+def get_chapter_rewrite_service():
+    """获取章节重写/真实回退服务。"""
+    from application.core.services.chapter_rewrite_service import ChapterRewriteService
+
+    return ChapterRewriteService(get_database(), get_story_node_repository())
+
+
 @lru_cache
 def get_background_task_service():
     """单例后台任务队列（API 进程内）：文风；章末 bundle（叙事+三元组+伏笔+故事线+张力+对话+剧情点）与管线同源单次 LLM。"""
@@ -917,6 +943,7 @@ def get_tension_analyzer():
         llm_client,
         chapter_repository=get_chapter_repository(),
         plot_arc_repository=get_plot_arc_repository(),
+        story_node_repository=get_story_node_repository(),
     )
 
 

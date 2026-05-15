@@ -83,6 +83,30 @@
       宏观规划完成后会停一次；之后每一幕<strong>仅在首次生成该幕章节规划</strong>时再停一次，不会无限循环。
     </n-alert>
 
+    <n-card v-if="status" size="small" class="ap-risk-card" :bordered="true">
+      <template #header>
+        <n-space align="center" justify="space-between" style="width:100%">
+          <span>监管状态</span>
+          <n-tag size="tiny" :type="riskTagType">{{ autopilotModeLabel(status?.autopilot_mode) }}</n-tag>
+        </n-space>
+      </template>
+      <n-space vertical :size="6">
+        <n-text depth="3" class="ap-risk-line">{{ nextActionHint }}</n-text>
+        <n-alert v-if="auditIssues.length" type="warning" :show-icon="true" style="font-size:12px">
+          <n-space vertical :size="4">
+            <n-text v-for="issue in auditIssues.slice(0, 3)" :key="issue.code || issue.message">
+              {{ issue.message || issue.code }}
+            </n-text>
+          </n-space>
+        </n-alert>
+        <n-space justify="end" :size="8" wrap class="ap-risk-actions">
+          <n-button size="tiny" secondary :disabled="!canRollback" @click="rollbackLatestChapter">
+            回滚最近章节
+          </n-button>
+        </n-space>
+      </n-space>
+    </n-card>
+
     <!-- 仅流式正文预览（与监控大盘终端日志分离，避免双 SSE 卡顿） -->
     <AutopilotWritingStream
       v-if="isRunning"
@@ -92,7 +116,7 @@
     />
 
     <!-- 操作按钮 -->
-    <n-space justify="end" size="small">
+    <n-space justify="end" size="small" wrap class="ap-actions">
       <n-button v-if="needsReview" type="warning" size="small" :loading="toggling" @click="resume">
         确认大纲，继续写作
       </n-button>
@@ -141,6 +165,13 @@
               style="width: 100%"
             />
           </n-form-item>
+          <n-form-item label="驾驶模式">
+            <n-select
+              v-model:value="startConfig.autopilot_mode"
+              :options="autopilotModeOptions"
+              style="width: 100%"
+            />
+          </n-form-item>
           
           <!-- 全自动模式开关 -->
           <n-form-item label="全自动模式">
@@ -163,7 +194,7 @@
               <strong>全自动模式已开启</strong>：系统将跳过所有审阅环节，自动运行直到写完。
             </template>
             <template v-else>
-              达到 <strong>{{ startConfig.target_chapters }} 章</strong> 目标时自动完成全书；保护上限已自动设置为 <strong>目标 + 20</strong>。
+              {{ selectedAutopilotModeDescription }}；保护上限已自动设置为 <strong>目标 + 20</strong>。
             </template>
           </n-alert>
           <n-text depth="3" style="font-size: 11px; line-height: 1.5; display: block; margin-top: 4px">
@@ -180,6 +211,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useMessage } from 'naive-ui'
 import AutopilotWritingStream from './AutopilotWritingStream.vue'
 import { resolveHttpUrl, subscribeChapterStream } from '../../api/config'
+import { chapterApi } from '../../api/chapter'
 
 const props = defineProps({ novelId: String })
 const emit = defineEmits(['status-change', 'chapter-content-update', 'chapter-start', 'chapter-chunk'])
@@ -192,8 +224,28 @@ const startConfig = ref({
   target_chapters: 100,
   target_words_per_chapter: 2500,
   max_auto_chapters: 120,
-  auto_approve_mode: false
+  auto_approve_mode: false,
+  autopilot_mode: 'full_draft'
 })
+
+const autopilotModeOptions = [
+  { label: '全托管草稿：一路写完，最低打断', value: 'full_draft' },
+  { label: '监管式 · 草稿优先：关键风险才停靠', value: 'draft_first' },
+  { label: '监管式 · 质量优先：质量门禁失败即停靠', value: 'quality_first' },
+  { label: '监管式 · 严格一致性：高风险上下文必须确认', value: 'strict_consistency' },
+]
+
+const selectedAutopilotModeDescription = computed(() => {
+  const mode = startConfig.value.autopilot_mode
+  if (mode === 'draft_first') return `草稿优先监管：达到 ${startConfig.value.target_chapters} 章目标时完成，高风险章节会停靠`
+  if (mode === 'quality_first') return `质量优先监管：达到 ${startConfig.value.target_chapters} 章目标时完成，质量门禁失败会停靠`
+  if (mode === 'strict_consistency') return `严格一致性监管：达到 ${startConfig.value.target_chapters} 章目标时完成，冲突上下文会停靠确认`
+  return `全托管草稿：达到 ${startConfig.value.target_chapters} 章目标时自动完成全书`
+})
+
+function autopilotModeLabel(mode) {
+  return autopilotModeOptions.find(option => option.value === mode)?.label?.split('：')[0] || '全托管草稿'
+}
 
 // 目标章数（从 status 获取）
 const targetChapters = computed(() => status.value?.target_chapters || 100)
@@ -224,6 +276,22 @@ const needsRecovery = computed(
     status.value?.autopilot_status === 'error' ||
     (status.value?.consecutive_error_count || 0) >= 3
 )
+const auditIssues = computed(() => status.value?.last_chapter_audit?.issues ?? [])
+const riskTagType = computed(() => {
+  if (auditIssues.value.length) return 'warning'
+  if (status.value?.needs_review) return 'error'
+  return 'success'
+})
+const canRollback = computed(() => {
+  const chapterNumber = status.value?.last_chapter_audit?.chapter_number ?? status.value?.current_chapter_number
+  return Number.isFinite(Number(chapterNumber))
+})
+const nextActionHint = computed(() => {
+  if (status.value?.needs_review) return '高风险或审阅节点已停靠，确认风险后再继续。'
+  if (auditIssues.value.length) return '最近章节有审稿问题，建议先处理问题任务或回滚。'
+  if (isRunning.value) return '当前风险可控，系统会按所选模式推进。'
+  return '自动驾驶已停止，可启动全托管或监管式模式。'
+})
 /** 无完稿时用语稿章节进度条，避免规划落库后仍显示 0% */
 const progressPct = computed(() => {
   const s = status.value
@@ -350,11 +418,13 @@ function openStartModal() {
   const target = status.value?.target_chapters || 100
   const wpc = status.value?.target_words_per_chapter ?? 2500
   const autoApprove = status.value?.auto_approve_mode ?? false
+  const autopilotMode = status.value?.autopilot_mode ?? 'full_draft'
   startConfig.value = {
     target_chapters: target,
     target_words_per_chapter: wpc,
     max_auto_chapters: target + 20,
-    auto_approve_mode: autoApprove
+    auto_approve_mode: autoApprove,
+    autopilot_mode: autopilotMode
   }
   showStartModal.value = true
 }
@@ -421,10 +491,11 @@ async function start() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         max_auto_chapters: startConfig.value.max_auto_chapters,
+        autopilot_mode: startConfig.value.autopilot_mode,
       }),
     })
     if (res.ok) {
-      const modeText = startConfig.value.auto_approve_mode ? '（全自动模式）' : ''
+      const modeText = startConfig.value.auto_approve_mode ? '（全自动模式）' : `（${autopilotModeLabel(startConfig.value.autopilot_mode)}）`
       message.success(`自动驾驶已启动${modeText}`)
     }
     else message.error('启动失败')
@@ -468,6 +539,24 @@ async function clearCircuitBreaker() {
     } else {
       message.error('操作失败，请确认后端已更新并稍后重试')
     }
+  } finally {
+    toggling.value = false
+  }
+}
+
+async function rollbackLatestChapter() {
+  const chapterNumber = status.value?.last_chapter_audit?.chapter_number ?? status.value?.current_chapter_number
+  if (!chapterNumber) {
+    message.warning('暂无可回滚章节')
+    return
+  }
+  toggling.value = true
+  try {
+    await chapterApi.rollbackLatest(props.novelId, Number(chapterNumber))
+    message.success(`已回滚第 ${chapterNumber} 章`)
+    await fetchStatus()
+  } catch {
+    message.error('回滚失败，可能还没有可用快照')
   } finally {
     toggling.value = false
   }
@@ -682,6 +771,24 @@ onUnmounted(() => {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
   padding: 4px 0;
+}
+
+.ap-risk-card {
+  background: rgba(240, 160, 32, 0.035);
+  min-width: 0;
+}
+
+.ap-risk-line {
+  display: block;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ap-actions,
+.ap-risk-actions {
+  min-width: 0;
 }
 
 .ap-cell {

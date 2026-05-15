@@ -205,12 +205,25 @@ async def generate_bible(
             bible_summary = f"主要角色：{char_desc}。重要地点：{loc_desc}。文风：{bible_data.get('style', '')}。"
 
             # 生成初始 Knowledge
-            await knowledge_generator.generate_and_save(
-                novel_id,
-                novel.title,
-                bible_summary
-            )
-            logger.info(f"Bible and Knowledge generated successfully for {novel_id}")
+            #
+            # Knowledge 是 Bible 的后续增强层，不能反过来把已经成功落库的
+            # 人物/地点/世界观步骤标记成失败。部分 OpenAI-compatible 网关在
+            # stream 模式下偶发 200 + empty content；这里降级为 warning，用户
+            # 仍可继续使用已生成的 Bible，并在后续上下文/知识图谱入口补生成。
+            try:
+                await knowledge_generator.generate_and_save(
+                    novel_id,
+                    novel.title,
+                    bible_summary
+                )
+                logger.info(f"Bible and Knowledge generated successfully for {novel_id}")
+            except Exception as knowledge_error:
+                logger.warning(
+                    "Bible generated for %s, but initial Knowledge generation failed non-fatally: %s",
+                    novel_id,
+                    knowledge_error,
+                    exc_info=True,
+                )
             clear_bible_generation_state(novel_id)
         except Exception as e:
             import traceback

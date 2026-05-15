@@ -7,7 +7,7 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Literal, Optional
 from domain.novel.entities.novel import AutopilotStatus, NovelStage
 from domain.novel.value_objects.novel_id import NovelId
 from interfaces.api.dependencies import get_novel_repository, get_chapter_repository
@@ -124,6 +124,12 @@ def _autopilot_status_zh(status: str) -> str:
 
 class StartRequest(BaseModel):
     max_auto_chapters: Optional[int] = 9999  # 保护上限，默认几乎无限制，由 target_chapters 控制实际完成点
+    autopilot_mode: Literal[
+        "full_draft",
+        "draft_first",
+        "quality_first",
+        "strict_consistency",
+    ] = "full_draft"
 
 
 @router.post("/{novel_id}/start")
@@ -136,6 +142,7 @@ async def start_autopilot(novel_id: str, body: StartRequest = StartRequest()):
 
     novel.autopilot_status = AutopilotStatus.RUNNING
     novel.max_auto_chapters = body.max_auto_chapters
+    setattr(novel, "autopilot_mode", body.autopilot_mode)
     novel.current_auto_chapters = novel.current_auto_chapters or 0
     novel.consecutive_error_count = 0
 
@@ -155,6 +162,7 @@ async def start_autopilot(novel_id: str, body: StartRequest = StartRequest()):
         "autopilot_status": novel.autopilot_status.value,
         "current_stage": novel.current_stage.value,
         "target_chapters": novel.target_chapters,
+        "autopilot_mode": body.autopilot_mode,
     }
 
 
@@ -256,6 +264,7 @@ async def get_autopilot_status(novel_id: str):
         "current_chapter_number": current_chapter_number,
         "needs_review": novel.current_stage.value == "paused_for_review",
         "auto_approve_mode": getattr(novel, "auto_approve_mode", False),
+        "autopilot_mode": getattr(novel, "autopilot_mode", "full_draft") or "full_draft",
         "last_chapter_audit": last_chapter_audit,
         "audit_progress": getattr(novel, "audit_progress", None),  # 审计进度指示
     }

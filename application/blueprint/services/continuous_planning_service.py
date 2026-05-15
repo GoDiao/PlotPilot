@@ -1079,13 +1079,23 @@ class ContinuousPlanningService:
             logger.warning(f"幕级规划解析结果非对象 act={act_id}: {type(plan)}")
             return {"success": False, "act_id": act_id, "chapters": []}
 
+        act_blueprint = self._normalize_act_blueprint(plan, act_node)
+        act_node.metadata = act_node.metadata or {}
+        act_node.metadata["blueprint"] = act_blueprint
+        await self.story_node_repo.save(act_node)
+
         chapters = plan.get("chapters", [])
         if not isinstance(chapters, list):
             chapters = []
+        chapters = [
+            self._normalize_act_chapter_row(ch, act_local_index=i + 1)
+            for i, ch in enumerate(chapters)
+        ]
 
         return {
             "success": True,
             "act_id": act_id,
+            "act_blueprint": act_blueprint,
             "chapters": chapters,
         }
 
@@ -1137,6 +1147,7 @@ class ContinuousPlanningService:
                 planning_source=PlanningSource.AI_ACT,
                 outline=row.get("outline"),
                 pov_character_id=row.get("pov_character_id"),
+                metadata={"blueprint": row.get("blueprint", {})},
             )
             created_chapters.append(chapter_node)
 
@@ -1151,6 +1162,7 @@ class ContinuousPlanningService:
                     number=global_number,
                     title=row["title"],
                     content="",
+                    outline=row.get("outline") or "",
                     status=ChapterStatus.DRAFT,
                 )
                 self.chapter_repository.save(book_ch)
@@ -1384,11 +1396,100 @@ class ContinuousPlanningService:
             outline = outline.strip() or None
         else:
             outline = None
+        blueprint = self._normalize_chapter_blueprint(raw, act_local_index, title, outline)
         return {
             **raw,
             "number": num_int,
             "title": title,
-            "outline": outline,
+            "outline": outline or blueprint.get("outline") or "",
+            "blueprint": blueprint,
+            "metadata": {
+                **(raw.get("metadata") if isinstance(raw.get("metadata"), dict) else {}),
+                "blueprint": blueprint,
+            },
+        }
+
+    @staticmethod
+    def _as_str_list(value) -> List[str]:
+        if value is None:
+            return []
+        if isinstance(value, list):
+            return [str(v).strip() for v in value if str(v).strip()]
+        if isinstance(value, str):
+            return [line.strip(" -\t") for line in value.splitlines() if line.strip(" -\t")]
+        return [str(value).strip()] if str(value).strip() else []
+
+    @staticmethod
+    def _clamp_tension(value, fallback: int) -> int:
+        try:
+            n = int(float(value))
+        except (TypeError, ValueError):
+            n = fallback
+        return max(1, min(10, n))
+
+    def _normalize_act_blueprint(self, plan: Dict, act_node: StoryNode) -> Dict:
+        raw = plan.get("act_blueprint") or plan.get("blueprint") or {}
+        if not isinstance(raw, dict):
+            raw = {}
+        tension_curve = raw.get("tension_curve")
+        if not isinstance(tension_curve, dict):
+            tension_curve = {}
+        return {
+            "synopsis": str(raw.get("synopsis") or act_node.description or "").strip(),
+            "narrative_goal": str(raw.get("narrative_goal") or "").strip(),
+            "core_conflict": str(raw.get("core_conflict") or "").strip(),
+            "character_arc": str(raw.get("character_arc") or "").strip(),
+            "tension_curve": {
+                "opening": self._clamp_tension(tension_curve.get("opening"), 4),
+                "peak": self._clamp_tension(tension_curve.get("peak"), 8),
+                "ending": self._clamp_tension(tension_curve.get("ending"), 6),
+                "spike_chapters": self._as_str_list(tension_curve.get("spike_chapters")),
+                "cooldown_chapters": self._as_str_list(tension_curve.get("cooldown_chapters")),
+            },
+            "handoff_to_next": str(raw.get("handoff_to_next") or "").strip(),
+            "must_not_break": self._as_str_list(raw.get("must_not_break")),
+        }
+
+    def _normalize_chapter_blueprint(
+        self,
+        raw: Dict,
+        act_local_index: int,
+        title: str,
+        outline: Optional[str],
+    ) -> Dict:
+        metadata = raw.get("metadata") if isinstance(raw.get("metadata"), dict) else {}
+        bp = raw.get("blueprint") or metadata.get("blueprint") or {}
+        if not isinstance(bp, dict):
+            bp = {}
+        narrative_function = str(
+            bp.get("narrative_function")
+            or raw.get("narrative_function")
+            or "development"
+        ).strip()
+        selected_outline = str(
+            bp.get("outline")
+            or outline
+            or raw.get("description")
+            or f"{title}：承接本幕目标，推进主线并完成阶段性落点。"
+        ).strip()
+        target_tension = self._clamp_tension(
+            bp.get("target_tension") or raw.get("target_tension"),
+            4 + min(4, act_local_index),
+        )
+        return {
+            "narrative_function": narrative_function,
+            "target_tension": target_tension,
+            "tension_phase": str(bp.get("tension_phase") or raw.get("tension_phase") or "").strip(),
+            "outline": selected_outline,
+            "must_happen": self._as_str_list(bp.get("must_happen") or raw.get("must_happen")),
+            "must_not_happen": self._as_str_list(bp.get("must_not_happen") or raw.get("must_not_happen")),
+            "handoff_to_next": str(bp.get("handoff_to_next") or raw.get("handoff_to_next") or "").strip(),
+            "pov": str(bp.get("pov") or raw.get("pov") or raw.get("pov_character_id") or "").strip(),
+            "characters": self._as_str_list(bp.get("characters") or raw.get("characters")),
+            "locations": self._as_str_list(bp.get("locations") or raw.get("locations")),
+            "foreshadowing_actions": self._as_str_list(
+                bp.get("foreshadowing_actions") or raw.get("foreshadowing_actions")
+            ),
         }
 
     def _merged_elements_dict(self, chapter_row: Dict) -> Dict:
@@ -2151,8 +2252,9 @@ class ContinuousPlanningService:
 
     def _build_act_planning_prompt(self, act_node: StoryNode, bible_context: Dict, previous_summary: Optional[str], chapter_count: int) -> Prompt:
         """构建幕级规划提示词"""
-        system_msg = """你是一个专业的小说章节规划助手，擅长设计章节大纲和情节安排。
-你的任务是根据提供的信息生成章节规划，即使信息不完整也要生成合理的框架。
+        system_msg = """你是一个专业的长篇小说总编，擅长把“幕”拆成可执行的章节写作蓝图。
+你的任务不是只起标题，而是规划本幕梗概、张力曲线、每章叙事功能、目标张力和下一章承接。
+张力不是越高越好：必须安排铺垫、升温、爆点、余波、转场，避免每章都高潮造成读者疲劳。
 请直接输出 JSON 格式，不要询问额外信息，不要添加任何解释性文字。"""
 
         # 构建上下文信息
@@ -2176,22 +2278,47 @@ class ContinuousPlanningService:
 
         user_msg = f"""{context}
 
-请为这一幕规划 {chapter_count} 个章节。如果没有详细的世界观信息，请生成通用的章节框架。
+请为这一幕规划 {chapter_count} 个章节。如果没有详细的世界观信息，也要生成可执行的写作蓝图。
 
 要求：
-1. 每个章节需要有标题和大纲
-2. 如果有可用的人物和地点，尽量关联；如果没有，可以留空
-3. 章节编号从 1 开始递增
+1. 每个章节必须有标题、100-300字大纲、叙事功能、目标张力、必写事件、禁写事项和章末交接。
+2. 目标张力用 1-10 整数；铺垫/余波章可以低张力，爆点/反转章应高张力。
+3. 全幕必须形成曲线：开场、升温、峰值、回落/钩子，不要每章同一张力。
+4. 如果有可用人物和地点，尽量关联；如果没有，可以留空数组。
+5. 章节编号从 1 开始递增。
 
 请直接输出 JSON 格式，不要添加任何说明文字：
 {{
+  "act_blueprint": {{
+    "synopsis": "本幕完整梗概（150-300字）",
+    "narrative_goal": "本幕叙事目标",
+    "core_conflict": "本幕核心冲突",
+    "character_arc": "主要人物在本幕的变化",
+    "tension_curve": {{
+      "opening": 4,
+      "peak": 8,
+      "ending": 6,
+      "spike_chapters": ["3"],
+      "cooldown_chapters": ["4"]
+    }},
+    "handoff_to_next": "本幕交给下一幕的状态/悬念",
+    "must_not_break": ["不可违背设定"]
+  }},
   "chapters": [
     {{
       "number": 1,
       "title": "章节标题",
-      "outline": "章节大纲（100-200字）",
+      "outline": "章节大纲（100-300字，明确场景、行动、冲突、信息增量和章末落点）",
+      "narrative_function": "setup/rise/spike/cooldown/reveal/reversal/transition/decision",
+      "target_tension": 5,
+      "tension_phase": "铺垫/升温/爆点/余波/转场",
+      "must_happen": ["本章必须发生的事件"],
+      "must_not_happen": ["本章不能提前泄露或改写的事项"],
+      "handoff_to_next": "下一章开头必须承接的章末状态",
+      "pov": "视角人物ID或姓名",
       "characters": ["人物ID"],
-      "locations": ["地点ID"]
+      "locations": ["地点ID"],
+      "foreshadowing_actions": ["埋设/推进/回收的伏笔动作"]
     }}
   ]
 }}"""

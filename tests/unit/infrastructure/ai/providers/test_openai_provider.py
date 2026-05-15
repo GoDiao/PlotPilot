@@ -160,10 +160,41 @@ class TestOpenAIProviderLegacy:
         ])
 
         with patch.object(provider.async_client.chat.completions, "create", new_callable=AsyncMock) as mock_create:
-            mock_create.side_effect = [empty_response, empty_stream]
+            mock_create.side_effect = [empty_response, empty_stream, empty_response]
 
             with pytest.raises(RuntimeError, match="empty content"):
                 await provider.generate(prompt, config)
+
+    @pytest.mark.anyio
+    async def test_generate_retries_non_stream_when_stream_fallback_is_empty(self, provider):
+        prompt = Prompt(system="You are helpful", user="Hello")
+        config = GenerationConfig(model="test-model")
+        empty_response = SimpleNamespace(
+            choices=[SimpleNamespace(message=SimpleNamespace(content=None))],
+            usage=SimpleNamespace(prompt_tokens=10, completion_tokens=5),
+        )
+        empty_stream = _FakeStream([
+            SimpleNamespace(
+                choices=[SimpleNamespace(delta=SimpleNamespace(content=None))],
+                usage=SimpleNamespace(prompt_tokens=10, completion_tokens=5),
+            ),
+        ])
+        retry_response = SimpleNamespace(
+            choices=[SimpleNamespace(message=SimpleNamespace(content="Knowledge JSON"))],
+            usage=SimpleNamespace(prompt_tokens=11, completion_tokens=6),
+        )
+
+        with patch.object(provider.async_client.chat.completions, "create", new_callable=AsyncMock) as mock_create:
+            mock_create.side_effect = [empty_response, empty_stream, retry_response]
+
+            result = await provider.generate(prompt, config)
+
+            assert result.content == "Knowledge JSON"
+            assert result.token_usage.input_tokens == 11
+            assert result.token_usage.output_tokens == 6
+            assert mock_create.await_count == 3
+            assert mock_create.await_args_list[1].kwargs["stream"] is True
+            assert "stream" not in mock_create.await_args_list[2].kwargs
 
     def test_missing_api_key(self):
         with pytest.raises(ValueError, match="API key is required"):
@@ -266,8 +297,21 @@ class TestOpenAIProviderResponses:
             usage=SimpleNamespace(prompt_tokens=5, completion_tokens=0),
         )
 
-        with patch.object(provider.async_client.responses, "create", new_callable=AsyncMock) as mock_create:
-            mock_create.return_value = response
+        empty_chat_response = SimpleNamespace(
+            choices=[SimpleNamespace(message=SimpleNamespace(content=None))],
+            usage=SimpleNamespace(prompt_tokens=5, completion_tokens=0),
+        )
+        empty_stream = _FakeStream([
+            SimpleNamespace(
+                choices=[SimpleNamespace(delta=SimpleNamespace(content=None))],
+                usage=SimpleNamespace(prompt_tokens=5, completion_tokens=0),
+            ),
+        ])
+
+        with patch.object(provider.async_client.responses, "create", new_callable=AsyncMock) as mock_responses_create, \
+            patch.object(provider.async_client.chat.completions, "create", new_callable=AsyncMock) as mock_chat_create:
+            mock_responses_create.return_value = response
+            mock_chat_create.side_effect = [empty_chat_response, empty_stream, empty_chat_response]
 
             with pytest.raises(RuntimeError, match="empty content"):
                 await provider.generate(prompt, config)

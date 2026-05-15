@@ -19,6 +19,14 @@ export interface TensionDiagnosis {
   suggestions: string[]
 }
 
+export interface TensionRevisionDraft {
+  id: string
+  variant_label: string
+  revised_content: string
+  diff_text: string
+  status: string
+}
+
 export const tensionApi = {
   /** POST /api/v1/novels/{novel_id}/writer-block/tension-slingshot */
   slingshot: (novelId: string, payload: TensionSlingshotPayload) =>
@@ -26,6 +34,12 @@ export const tensionApi = {
       `/novels/${novelId}/writer-block/tension-slingshot`,
       payload
     ) as unknown as Promise<TensionDiagnosis>,
+
+  createRevisionDrafts: (novelId: string, payload: TensionSlingshotPayload) =>
+    apiClient.post<{ diagnosis: TensionDiagnosis; drafts: TensionRevisionDraft[] }>(
+      `/novels/${novelId}/writer-block/tension-revision-drafts`,
+      payload
+    ) as unknown as Promise<{ diagnosis: TensionDiagnosis; drafts: TensionRevisionDraft[] }>,
 }
 
 // ── 宏观重构扫描 ────────────────────────────────────────────

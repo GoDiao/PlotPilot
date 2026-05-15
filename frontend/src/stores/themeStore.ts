@@ -1,14 +1,21 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 
-export type ThemeMode = 'light' | 'dark' | 'anchor' | 'auto'
+export type ThemeMode = 'light' | 'dark' | 'anchor' | 'paper' | 'ocean' | 'auto'
 
 const STORAGE_KEY = 'aitext-theme-mode'
 
 function getStoredTheme(): ThemeMode {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored === 'light' || stored === 'dark' || stored === 'anchor' || stored === 'auto') return stored
+    if (
+      stored === 'light'
+      || stored === 'dark'
+      || stored === 'anchor'
+      || stored === 'paper'
+      || stored === 'ocean'
+      || stored === 'auto'
+    ) return stored
   } catch { /* ignore */ }
   return 'light'
 }
@@ -25,11 +32,13 @@ export const useThemeStore = defineStore('theme', () => {
 
   const isDark = computed(() => {
     if (mode.value === 'auto') return systemDark.value
-    return mode.value === 'dark' || mode.value === 'anchor'
+    return mode.value === 'dark' || mode.value === 'anchor' || mode.value === 'ocean'
   })
 
   /** 是否为黑金（主播限定色）模式 */
   const isAnchor = computed(() => mode.value === 'anchor')
+  const isPaper = computed(() => mode.value === 'paper')
+  const isOcean = computed(() => mode.value === 'ocean')
 
   /** 实际生效的主题名，供 naive-ui / CSS 使用 */
   const effectiveTheme = computed<'light' | 'dark'>(() =>
@@ -54,10 +63,10 @@ export const useThemeStore = defineStore('theme', () => {
     const root = document.documentElement
     if (isDark.value) {
       root.classList.add('dark')
-      root.setAttribute('data-theme', isAnchor.value ? 'anchor' : 'dark')
+      root.setAttribute('data-theme', isAnchor.value ? 'anchor' : isOcean.value ? 'ocean' : 'dark')
     } else {
       root.classList.remove('dark')
-      root.setAttribute('data-theme', 'light')
+      root.setAttribute('data-theme', isPaper.value ? 'paper' : 'light')
     }
   }
 
@@ -66,5 +75,5 @@ export const useThemeStore = defineStore('theme', () => {
   // - auto 模式下 OS 偏好变化（systemDark 改变 → isDark 改变）
   watch([isDark, mode], applyThemeToDOM, { immediate: true })
 
-  return { mode, isDark, isAnchor, effectiveTheme, setTheme }
+  return { mode, isDark, isAnchor, isPaper, isOcean, effectiveTheme, setTheme }
 })
