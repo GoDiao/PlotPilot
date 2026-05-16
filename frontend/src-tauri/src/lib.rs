@@ -1,4 +1,4 @@
-//! PlotPilot Tauri 主入口
+//! StoryOps Tauri 主入口
 //!
 //! 架构概览：
 //!   用户双击 exe → Tauri WebView 渲染 Vue3 前端
@@ -32,7 +32,7 @@ pub fn run() {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
         .init();
 
-    log::info!("🚀 PlotPilot (墨枢) 启动中...");
+    log::info!("🚀 StoryOps (叙构) 启动中...");
 
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
@@ -114,5 +114,5 @@ pub fn run() {
             commands::extract_embedded_python,
         ])
         .run(tauri::generate_context!())
-        .expect("error while running PlotPilot");
+        .expect("error while running StoryOps");
 }

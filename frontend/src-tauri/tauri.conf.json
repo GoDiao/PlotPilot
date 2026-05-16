@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-cli/schema.json",
-  "productName": "PlotPilot",
+  "productName": "StoryOps",
   "version": "1.0.4",
   "identifier": "com.plotpilot.app",
   "build": {
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "PlotPilot - AI 小说创作平台",
+        "title": "StoryOps · 叙构",
         "width": 1400,
         "height": 900,
         "minWidth": 1024,
@@ -61,10 +61,10 @@
       }
     },
     "shortDescription": "AI 驱动的智能小说创作平台",
-    "longDescription": "PlotPilot（墨枢）是一款 AI 驱动的智能小说创作平台，提供剧情分析、角色管理、AI 续写等专业功能。",
+    "longDescription": "StoryOps（叙构）是面向长篇小说的 AI 创作控制台，提供结构蓝图、上下文锁、质量门禁、局部改稿和记忆提交。",
     "category": "Productivity",
-    "publisher": "PlotPilot Team",
-    "copyright": "© 2025 PlotPilot Team. All rights reserved."
+    "publisher": "StoryOps Contributors",
+    "copyright": "© 2026 StoryOps Contributors. See LICENSE for upstream attribution."
   },
   "plugins": {}
 }

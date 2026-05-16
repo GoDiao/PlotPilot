@@ -1,17 +1,19 @@
-# PlotPilot（墨枢）
+# StoryOps · Long-form Fiction Console（叙构）
 
-> 感谢大家对开源社区的关注，预计5月份会进行大版本迭代，正式升级为剧情引擎。目前包体不稳定，不着急用的同学可以等新版本，PR我会在大版本迭代后统一review，十分感谢大家对开源社区的贡献！
+> StoryOps（叙构）是面向长篇小说的 AI 创作控制台：以结构蓝图、上下文锁、质量门禁、局部 Diff 改稿和可回退记忆，稳定推进长篇项目。
 
 <p align="center">
-  <img src="docs/plotpilot-readme.256.png" alt="PlotPilot 墨枢" width="480" />
+  <img src="docs/plotpilot-readme.256.png" alt="StoryOps 叙构" width="480" />
 </p>
 
-> AI 驱动的长篇创作平台 — 自动驾驶生成、知识图谱管理、风格分析一体化。
+> Long-form Fiction Console — 规划、生成、审稿、修订、入库、回退和自动驾驶的一体化工作台。
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
 [![Vue](https://img.shields.io/badge/Vue-3.5-4FC08D?style=flat&logo=vuedotjs&logoColor=white)](https://vuejs.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109%2B-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-D22128?style=flat&logo=apache&logoColor=white)](LICENSE)
+
+> Attribution: StoryOps is developed from a fork of PlotPilot. License and upstream attribution are retained in this repository.
 
 - **顶层架构**：上下文管理、知识体系、消费组件、状态感知等，超过 20 余个 prompt 接点，支持定制。
 - **通用设计**：通过提示词定制，支持短篇小说、超长篇小说、剧本、标书、转录等多种任务类型。
@@ -60,7 +62,7 @@
 
 ## 桌面安装版（Windows · Tauri）
 
-- **全部发行版**：[GitHub Releases](https://github.com/shenminglinyi/PlotPilot/releases)
+- **上游发行版**：[GitHub Releases](https://github.com/shenminglinyi/PlotPilot/releases)
 - **说明**：安装包内含冻结后端，无需单独装 Python；构建流程见 [docs/BUILD_INSTALLER.md](docs/BUILD_INSTALLER.md)。
 
 ---

@@ -1,4 +1,4 @@
-# PlotPilot 图标
+# StoryOps 图标
 
 请将应用图标文件放置在此目录：
 - 32x32.png

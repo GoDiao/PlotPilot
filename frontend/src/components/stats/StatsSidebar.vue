@@ -5,8 +5,8 @@
       <div class="brand-logo">
         <span class="logo-icon">✦</span>
         <div class="brand-text">
-          <h1 class="brand-name">PlotPilot</h1>
-          <p class="brand-slogan">墨枢 · 作者的领航员</p>
+          <h1 class="brand-name">StoryOps</h1>
+          <p class="brand-slogan">叙构 · Long-form Fiction Console</p>
         </div>
       </div>
       <button
@@ -122,7 +122,7 @@
               <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
             </svg>
           </span>
-          <span>新建书目</span>
+          <span>新建项目</span>
         </button>
         <button class="action-btn action-refresh" @click="$emit('refresh-list')">
           <span class="action-icon" aria-hidden="true">

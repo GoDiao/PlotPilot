@@ -125,7 +125,7 @@ class HubWindow(BaseWindow):
         # 初始化基类（内部会依次调用 _build_title_bar → _build_logo_area
         #                              → _build_separator → _build_body）
         super().__init__(
-            title="PlotPilot（墨枢）· AI 小说创作平台",
+            title="StoryOps（叙构）· Long-form Fiction Console",
             width=WINDOW_W, height=WINDOW_H,
             show_minimize=True,
             on_close=self._handle_close,
@@ -146,7 +146,7 @@ class HubWindow(BaseWindow):
         logo_f.pack(fill="x")
         logo_f.pack_propagate(False)
 
-        tk.Label(logo_f, text="PlotPilot",
+        tk.Label(logo_f, text="StoryOps",
                  bg=BG, fg=ACCENT, font=FONT_LOGO).pack(expand=True)
 
         # 点点动画标签
@@ -274,7 +274,7 @@ class HubWindow(BaseWindow):
                 else:
                     # root 已销毁，用纯终端输出兜底
                     print(f"\n[FATAL] {e}\n{tb}")
-                    show_fatal_console(f"PlotPilot 异常: {e}", tb[-2000:])
+                    show_fatal_console(f"StoryOps 异常: {e}", tb[-2000:])
             except Exception:
                 # 连弹窗都失败了，写文件兜底
                 try:
@@ -367,12 +367,12 @@ class HubWindow(BaseWindow):
                 ("取消", lambda: self.root.destroy(), {}),
             ]
             content = (
-                f"检测到 PlotPilot 正在运行中：\n\n"
+                f"检测到 StoryOps 正在运行中：\n\n"
                 f"  PID: {old_pid}    端口: {old_port}\n\n"
                 f"请选择操作："
             )
             show_popup(
-                self.root, "PlotPilot 已在运行", content,
+                self.root, "StoryOps 已在运行", content,
                 width=480, height=300, color=WARN_C, icon="⚠",
                 buttons=btns,
             )
@@ -472,7 +472,7 @@ class HubWindow(BaseWindow):
         self._port = port
         def _do():
             try:
-                self.root.title("PlotPilot（墨枢）· 运行中")
+                self.root.title("StoryOps（叙构）· 运行中")
                 self.status_card.update(100, "服务运行中", "✔")
                 self.status_card.port_badge.config(
                     text=f"http://127.0.0.1:{port}", bg=OK_C)
@@ -533,7 +533,7 @@ class HubWindow(BaseWindow):
 
             # 创建弹窗
             popup_ref[0] = show_popup(
-                self.root, "✨ PlotPilot 已就绪！", content,
+                self.root, "✨ StoryOps 已就绪！", content,
                 width=520, height=400, color=OK_C, icon="✓",
                 buttons=[
                     ("🚀 安装本地 AI 引擎", _install_ext,
@@ -597,7 +597,7 @@ class HubWindow(BaseWindow):
                         "  • 磁盘空间不足（需要 ~5GB）\n\n"
                         "你可以：\n"
                         "  • 继续使用 OpenAI API 模式（无需扩展包）\n"
-                        "  • 稍后重新启动 PlotPilot 再试",
+                        "  • 稍后重新启动 StoryOps 再试",
                         width=460, height=360, color=WARN_C, icon="⚠",
                         buttons=[
                             ("知道了", lambda: None,
@@ -648,7 +648,7 @@ class HubWindow(BaseWindow):
         """致命错误弹窗——显示 traceback"""
         def _do():
             show_popup(
-                self.root, "PlotPilot 发生异常",
+                self.root, "StoryOps 发生异常",
                 f"异常类型: {type(exc).__name__}\n\n{str(exc)[:200]}",
                 width=520, height=400, color=ERR_C, icon="✘",
                 buttons=[
@@ -708,7 +708,7 @@ def main():
 
     if _import_errors and not _TK_OK:
         print("=" * 56)
-        print("[FATAL] PlotPilot 无法启动:")
+        print("[FATAL] StoryOps 无法启动:")
         for err in _import_errors:
             print(f"  - {err}")
         print()
@@ -717,7 +717,7 @@ def main():
         print("  2. tkinter 可用（通常随 Python 一起安装）")
         print("  3. 如使用精简版 Python，请安装完整版")
         print("=" * 56)
-        show_fatal_console("PlotPilot 无法启动", "\n".join(_import_errors))
+        show_fatal_console("StoryOps 无法启动", "\n".join(_import_errors))
         sys.exit(1)
 
     mode = "auto"
@@ -746,7 +746,7 @@ def main():
                 root.attributes("-topmost", True)
                 from tkinter import messagebox
                 messagebox.showerror(
-                    "PlotPilot 启动失败",
+                    "StoryOps 启动失败",
                     f"发生未预期的错误:\n\n{e}\n\n"
                     f"详细日志已保存到 logs/crash.log\n"
                     f"也可在命令行运行: python scripts/install/hub.py",

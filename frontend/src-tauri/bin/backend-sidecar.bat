@@ -1,5 +1,5 @@
 @echo off
-:: PlotPilot Backend Sidecar
+:: StoryOps Backend Sidecar
 :: 由 Tauri 自动调用，不要手动运行
 ::
 :: 用法: backend-sidecar.bat <port>

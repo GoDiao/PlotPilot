@@ -298,7 +298,7 @@ impl BackendManager {
             c
         } else {
             let python = self.find_python().ok_or_else(|| {
-                "未找到 plotpilot-backend.exe，也未找到 Python。发布构建请运行 scripts/build_backend_pyinstaller.py；开发请安装 Python 3.10+".to_string()
+                "未找到 StoryOps 后端 sidecar（plotpilot-backend.exe），也未找到 Python。发布构建请运行 scripts/build_backend_pyinstaller.py；开发请安装 Python 3.10+".to_string()
             })?;
             log::info!("🐍 启动 uvicorn（解释器）: {}", python.display());
             let mut c = Command::new(&python);

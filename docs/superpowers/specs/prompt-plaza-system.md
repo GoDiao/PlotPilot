@@ -8,7 +8,7 @@
 
 ## 1. 系统概述
 
-提示词广场是 PlotPilot 的 AI 提示词统一管理中心。它将分散在代码各处的 26+ 个内置提示词集中到 SQLite 数据库中，提供：
+提示词广场是 StoryOps 的 AI 提示词统一管理中心。它将分散在代码各处的 26+ 个内置提示词集中到 SQLite 数据库中，提供：
 
 - **分类浏览** — 按功能分为 6 大类（内容生成、信息提取、审稿质检、规划设计、世界设定、创意辅助）
 - **版本管理** — 每个「节点」（单个提示词）拥有完整的 Git-like 版本历史，支持回滚
@@ -259,9 +259,9 @@ PromptPlaza.vue 加载数据
 ```json
 {
   "_meta": {
-    "name": "PlotPilot 内置",
+    "name": "StoryOps 内置",
     "version": "1.0.0",
-    "author": "PlotPilot Team"
+    "author": "StoryOps Contributors"
   },
   "prompts": [
     {

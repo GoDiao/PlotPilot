@@ -1,7 +1,7 @@
 {
-  "name": "plotpilot",
+  "name": "storyops-console",
   "private": true,
-  "description": "PlotPilot · 墨枢 - 作者的领航员",
+  "description": "StoryOps · Long-form Fiction Console（叙构）",
   "version": "1.0.2",
   "type": "module",
   "scripts": {

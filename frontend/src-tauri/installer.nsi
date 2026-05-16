@@ -3,7 +3,7 @@
 ; 自定义整包替换会导致 ${SOURCE_DIR} 等变量未注入、打包失败。
 ; 如需定制请基于上游 installer.nsi 复制后改 template，或使用 installer_hooks 注入 .nsh。
 ;
-; PlotPilot NSIS 安装脚本（保留作参考）
+; StoryOps NSIS 安装脚本（保留作参考）
 ; 基于 Tauri 的 NSIS 模板，添加了桌面快捷方式和开始菜单配置
 
 !include "MUI2.nsh"
@@ -11,24 +11,24 @@
 !include "LogicLib.nsh"
 
 ; 基础配置
-Name "PlotPilot - AI 小说创作平台"
+Name "StoryOps - AI 小说创作平台"
 OutFile "${OUTFILE}"
 Unicode True
 RequestExecutionLevel admin
 
 ; 默认安装目录
-InstallDir "$PROGRAMFILES64\PlotPilot"
-InstallDirRegKey HKCU "Software\PlotPilot" "InstallDir"
+InstallDir "$PROGRAMFILES64\StoryOps"
+InstallDirRegKey HKCU "Software\StoryOps" "InstallDir"
 
 ; 版本信息
 VIProductVersion "1.0.2.0"
-VIAddVersionKey "ProductName" "PlotPilot"
+VIAddVersionKey "ProductName" "StoryOps"
 VIAddVersionKey "FileDescription" "AI 小说创作平台"
 VIAddVersionKey "FileVersion" "1.0.2"
 VIAddVersionKey "ProductVersion" "1.0.2"
-VIAddVersionKey "InternalName" "PlotPilot"
-VIAddVersionKey "LegalCopyright" "© 2025 PlotPilot Team"
-VIAddVersionKey "OriginalFilename" "PlotPilot_1.0.2_x64-setup.exe"
+VIAddVersionKey "InternalName" "StoryOps"
+VIAddVersionKey "LegalCopyright" "© 2025 StoryOps Team"
+VIAddVersionKey "OriginalFilename" "StoryOps_1.0.2_x64-setup.exe"
 
 ; MUI 界面配置（脚本位于 target/release/nsis/x64/，需回到 src-tauri/icons）
 !define MUI_ICON "..\..\..\..\icons\icon.ico"
@@ -50,7 +50,7 @@ Var StartMenuFolder
 
 ; 开始菜单快捷方式页面
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU"
-!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\PlotPilot"
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\StoryOps"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "StartMenuFolder"
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
 
@@ -58,8 +58,8 @@ Var StartMenuFolder
 !insertmacro MUI_PAGE_INSTFILES
 
 ; 完成页面 - 添加"运行程序"和"创建桌面快捷方式"选项
-!define MUI_FINISHPAGE_RUN "$INSTDIR\PlotPilot.exe"
-!define MUI_FINISHPAGE_RUN_TEXT "立即运行 PlotPilot"
+!define MUI_FINISHPAGE_RUN "$INSTDIR\StoryOps.exe"
+!define MUI_FINISHPAGE_RUN_TEXT "立即运行 StoryOps"
 !define MUI_FINISHPAGE_SHOWREADME ""
 !define MUI_FINISHPAGE_SHOWREADME_TEXT "创建桌面快捷方式"
 !define MUI_FINISHPAGE_SHOWREADME_FUNCTION CreateDesktopShortcut
@@ -86,43 +86,43 @@ Section "Install"
   WriteUninstaller "$INSTDIR\uninstall.exe"
 
   ; 写入注册表信息
-  WriteRegStr HKCU "Software\PlotPilot" "InstallDir" "$INSTDIR"
-  WriteRegStr HKCU "Software\PlotPilot" "Version" "1.0.2"
+  WriteRegStr HKCU "Software\StoryOps" "InstallDir" "$INSTDIR"
+  WriteRegStr HKCU "Software\StoryOps" "Version" "1.0.2"
 
   ; 写入卸载注册表项（控制面板中显示）
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\PlotPilot" \
-    "DisplayName" "PlotPilot - AI 小说创作平台"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\PlotPilot" \
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\StoryOps" \
+    "DisplayName" "StoryOps - AI 小说创作平台"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\StoryOps" \
     "UninstallString" "$INSTDIR\uninstall.exe"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\PlotPilot" \
-    "DisplayIcon" "$INSTDIR\PlotPilot.exe"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\PlotPilot" \
-    "Publisher" "PlotPilot Team"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\PlotPilot" \
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\StoryOps" \
+    "DisplayIcon" "$INSTDIR\StoryOps.exe"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\StoryOps" \
+    "Publisher" "StoryOps Team"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\StoryOps" \
     "DisplayVersion" "1.0.2"
-  WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\PlotPilot" \
+  WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\StoryOps" \
     "NoModify" 1
-  WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\PlotPilot" \
+  WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\StoryOps" \
     "NoRepair" 1
 
   ; 计算安装目录大小
   ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
   IntFmt $0 "0x%08X" $0
-  WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\PlotPilot" \
+  WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\StoryOps" \
     "EstimatedSize" "$0"
 
   ; 创建开始菜单快捷方式
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-    CreateShortcut "$SMPROGRAMS\$StartMenuFolder\PlotPilot.lnk" "$INSTDIR\PlotPilot.exe"
-    CreateShortcut "$SMPROGRAMS\$StartMenuFolder\卸载 PlotPilot.lnk" "$INSTDIR\uninstall.exe"
+    CreateShortcut "$SMPROGRAMS\$StartMenuFolder\StoryOps.lnk" "$INSTDIR\StoryOps.exe"
+    CreateShortcut "$SMPROGRAMS\$StartMenuFolder\卸载 StoryOps.lnk" "$INSTDIR\uninstall.exe"
   !insertmacro MUI_STARTMENU_WRITE_END
 
 SectionEnd
 
 ; 创建桌面快捷方式的函数
 Function CreateDesktopShortcut
-  CreateShortcut "$DESKTOP\PlotPilot.lnk" "$INSTDIR\PlotPilot.exe" "" "$INSTDIR\PlotPilot.exe" 0
+  CreateShortcut "$DESKTOP\StoryOps.lnk" "$INSTDIR\StoryOps.exe" "" "$INSTDIR\StoryOps.exe" 0
 FunctionEnd
 
 ; 卸载部分
@@ -135,10 +135,10 @@ Section "Uninstall"
   RMDir /r "$SMPROGRAMS\$StartMenuFolder"
 
   ; 删除桌面快捷方式
-  Delete "$DESKTOP\PlotPilot.lnk"
+  Delete "$DESKTOP\StoryOps.lnk"
 
   ; 删除注册表项
-  DeleteRegKey HKCU "Software\PlotPilot"
-  DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\PlotPilot"
+  DeleteRegKey HKCU "Software\StoryOps"
+  DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\StoryOps"
 
 SectionEnd

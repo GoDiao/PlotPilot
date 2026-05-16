@@ -107,9 +107,9 @@ logger.info("=" * 80)
 
 # 创建 FastAPI 应用
 app = FastAPI(
-    title="PlotPilot API",
+    title="StoryOps API",
     version="1.0.2",
-    description="PlotPilot（墨枢）AI 小说创作平台 API",
+    description="StoryOps · Long-form Fiction Console（叙构）API",
     redirect_slashes=True,  # 自动将 /api/v1/novels 重定向到 /api/v1/novels/
 )
 
@@ -573,7 +573,7 @@ async def root():
     """根路径 — 返回前端页面（SPA）或 API 欢迎消息"""
     if _FRONTEND_DIR.exists() and _INDEX_HTML.exists():
         return FileResponse(str(_INDEX_HTML), media_type="text/html")
-    return {"message": "PlotPilot API", "release": APP_RELEASE_VERSION}
+    return {"message": "StoryOps API", "release": APP_RELEASE_VERSION}
 
 
 @app.get("/health")

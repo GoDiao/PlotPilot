@@ -171,7 +171,7 @@ class BackendLauncher:
 
         self.on_failed(
             "找不到已安装 uvicorn 的 Python",
-            "请先运行 PlotPilot 安装程序完成依赖安装",
+            "请先运行 StoryOps 安装程序完成依赖安装",
         )
         return None
 

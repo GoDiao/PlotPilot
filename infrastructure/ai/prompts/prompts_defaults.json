@@ -1,8 +1,8 @@
 {
   "_meta": {
     "version": "2.0.0-anti-ai-v1",
-    "description": "PlotPilot 提示词库 v2 - 反AI风/爽文沉浸式/上下文强一致性重写版",
-    "author": "PlotPilot Team x Anti-AI Style Specialist",
+    "description": "StoryOps Prompt Contract Library v2 - long-form consistency and style governance",
+    "author": "StoryOps Contributors x Anti-AI Style Specialist",
     "last_updated": "2026-04-18",
     "engine": "jinja2",
     "changelog": "v2: 全面重写核心生成/审阅提示词，消除模板感，强化爽文节奏与连贯性"

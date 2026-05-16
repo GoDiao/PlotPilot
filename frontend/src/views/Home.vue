@@ -12,7 +12,7 @@
         <!-- Header -->
         <header class="header">
           <div class="header-content">
-            <h1 class="title">墨枢 · 长篇叙事工作台</h1>
+            <h1 class="title">StoryOps · 叙构</h1>
             <p class="subtitle">
               以梗概与类型开局，选定目标篇幅；宏观结构、幕次与节拍由后台自动编排，你专注把故事写下去即可。
             </p>

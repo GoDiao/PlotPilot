@@ -301,7 +301,7 @@ class BaseWindow:
         logo_f = tk.Frame(self.root, bg=BG, height=LOGO_H)
         logo_f.pack(fill="x")
         logo_f.pack_propagate(False)
-        tk.Label(logo_f, text="PlotPilot",
+        tk.Label(logo_f, text="StoryOps",
                  bg=BG, fg=ACCENT, font=FONT_LOGO).pack(expand=True)
 
     def _build_separator(self):
@@ -380,7 +380,7 @@ class BaseWindow:
     def _on_restore(self, event=None):
         """从任务栏恢复窗口（非托盘模式）"""
         self.root.overrideredirect(True)
-        self.root.title("PlotPilot（墨枢）· AI 小说创作平台")
+        self.root.title("StoryOps（叙构）· Long-form Fiction Console")
         self.root.unbind("<Map>")
 
     def _on_close(self):

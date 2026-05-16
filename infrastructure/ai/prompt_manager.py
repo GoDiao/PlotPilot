@@ -338,10 +338,10 @@ class PromptManager:
             VALUES (?, ?, ?, 'builtin', ?, ?, '🏗️', '#4f46e5', 1, ?, ?, ?)
         """, (
             template_id,
-            meta.get("name", "PlotPilot 内置"),
+            meta.get("name", "StoryOps 内置"),
             meta.get("description", ""),
             meta.get("version", "1.0.0"),
-            meta.get("author", "PlotPilot Team"),
+            meta.get("author", "StoryOps Contributors"),
             json.dumps(meta, ensure_ascii=False),
             now, now,
         ))
