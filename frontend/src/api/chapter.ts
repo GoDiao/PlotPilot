@@ -208,6 +208,22 @@ export const chapterApi = {
       params: memoryLayer ? { memory_layer: memoryLayer } : undefined,
     }) as Promise<ChapterMemoryEntryDTO[]>,
 
+  addMemory: (novelId: string, chapterNumber: number, payload: {
+    memory_layer: 'draft' | 'pending' | 'canonical'
+    source?: string
+    entry_type?: string
+    content: string
+    payload?: Record<string, unknown>
+    issue_id?: string
+  }) =>
+    apiClient.post<ChapterMemoryEntryDTO>(`/novels/${novelId}/chapters/${chapterNumber}/memory`, payload) as Promise<ChapterMemoryEntryDTO>,
+
+  promoteMemory: (novelId: string, chapterNumber: number, entryId: string, targetLayer: 'pending' | 'canonical' = 'canonical') =>
+    apiClient.post<ChapterMemoryEntryDTO>(`/novels/${novelId}/chapters/${chapterNumber}/memory/promote`, {
+      entry_id: entryId,
+      target_layer: targetLayer,
+    }) as Promise<ChapterMemoryEntryDTO>,
+
   applyIssueAction: (novelId: string, chapterNumber: number, issueId: string, action: string, memo = '') =>
     apiClient.post(`/novels/${novelId}/chapters/${chapterNumber}/issue-actions`, {
       issue_id: issueId,

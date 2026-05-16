@@ -92,6 +92,12 @@
       </template>
       <n-space vertical :size="6">
         <n-text depth="3" class="ap-risk-line">{{ nextActionHint }}</n-text>
+        <n-alert v-if="riskExplanation" :type="needsReview ? 'warning' : 'info'" :show-icon="false" class="ap-risk-explain">
+          <n-space vertical :size="4">
+            <n-text>{{ riskExplanation }}</n-text>
+            <n-text depth="3">{{ rollbackExplanation }}</n-text>
+          </n-space>
+        </n-alert>
         <n-alert v-if="auditIssues.length" type="warning" :show-icon="true" style="font-size:12px">
           <n-space vertical :size="4">
             <n-text v-for="issue in auditIssues.slice(0, 3)" :key="issue.code || issue.message">
@@ -101,7 +107,7 @@
         </n-alert>
         <n-space justify="end" :size="8" wrap class="ap-risk-actions">
           <n-button size="tiny" secondary :disabled="!canRollback" @click="rollbackLatestChapter">
-            回滚最近章节
+            回滚最近快照
           </n-button>
         </n-space>
       </n-space>
@@ -191,7 +197,7 @@
           
           <n-alert type="info" :show-icon="false" style="font-size: 11px; margin-top: -8px">
             <template v-if="startConfig.auto_approve_mode">
-              <strong>全自动模式已开启</strong>：系统将跳过所有审阅环节，自动运行直到写完。
+              <strong>全自动模式已开启</strong>：系统将跳过规划审阅；若后端判定章节存在强一致性风险，仍建议使用回滚/重写清理污染。
             </template>
             <template v-else>
               {{ selectedAutopilotModeDescription }}；保护上限已自动设置为 <strong>目标 + 20</strong>。
@@ -277,8 +283,18 @@ const needsRecovery = computed(
     (status.value?.consecutive_error_count || 0) >= 3
 )
 const auditIssues = computed(() => status.value?.last_chapter_audit?.issues ?? [])
+const auditSnapshot = computed(() => status.value?.last_chapter_audit ?? null)
+const highRiskReasons = computed(() => {
+  const reasons = []
+  if (status.value?.needs_review) reasons.push('当前处于人工停靠点')
+  if (auditIssues.value.length) reasons.push(`最近章节还有 ${auditIssues.value.length} 个审稿问题`)
+  if (auditSnapshot.value?.drift_alert) reasons.push('检测到文风/身份漂移告警')
+  if (auditSnapshot.value?.narrative_sync_ok === false) reasons.push('章后叙事同步失败，暂不应继续污染下一章')
+  if (status.value?.consecutive_error_count > 0) reasons.push(`连续失败 ${status.value.consecutive_error_count} 次`)
+  return reasons
+})
 const riskTagType = computed(() => {
-  if (auditIssues.value.length) return 'warning'
+  if (highRiskReasons.value.length) return status.value?.needs_review ? 'error' : 'warning'
   if (status.value?.needs_review) return 'error'
   return 'success'
 })
@@ -291,6 +307,15 @@ const nextActionHint = computed(() => {
   if (auditIssues.value.length) return '最近章节有审稿问题，建议先处理问题任务或回滚。'
   if (isRunning.value) return '当前风险可控，系统会按所选模式推进。'
   return '自动驾驶已停止，可启动全托管或监管式模式。'
+})
+const riskExplanation = computed(() => {
+  if (!highRiskReasons.value.length) return ''
+  return `停靠/风险原因：${highRiskReasons.value.join('；')}。建议先处理问题收件箱、确认记忆层，再继续自动驾驶。`
+})
+const rollbackExplanation = computed(() => {
+  const chapterNumber = auditSnapshot.value?.chapter_number ?? status.value?.current_chapter_number
+  if (!chapterNumber) return '暂无可定位章节；可先刷新状态或到章节工作台手动检查。'
+  return `可回滚第 ${chapterNumber} 章最近写前快照；如果要彻底重写该章，请到章节编辑区使用「重写本章」以清理正文和章后副作用。`
 })
 /** 无完稿时用语稿章节进度条，避免规划落库后仍显示 0% */
 const progressPct = computed(() => {
@@ -776,6 +801,11 @@ onUnmounted(() => {
 .ap-risk-card {
   background: rgba(240, 160, 32, 0.035);
   min-width: 0;
+}
+
+.ap-risk-explain {
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .ap-risk-line {

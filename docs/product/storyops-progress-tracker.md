@@ -7,14 +7,14 @@
 - 当前分支：`codex/product-trustworthy-creation-loop`
 - 当前产品名：**StoryOps / 叙构**
 - 产品全称：**StoryOps · Long-form Fiction Console**
-- 当前版本判断：**v0.3.0-beta candidate**
-- 当前总体状态：核心能力已成型，品牌第一阶段已落地；仍需深层独立化、真实浏览器验收和真实写作回归。
+- 当前版本判断：**v0.3.1-beta candidate**
+- 当前总体状态：可信创作闭环已进入可用 Beta；仍需深层独立化、真实浏览器验收和真实写作回归。
 
 ## Overall Progress
 
 | 模块 | 完成度 | 状态 | 说明 |
 | --- | ---: | --- | --- |
-| 可信创作闭环 | 75% | In Progress | 章节状态、质量门禁、重写快照、记忆提交、张力诊断和局部 Diff 已具备基础闭环。 |
+| 可信创作闭环 | 85% | Beta | 章节状态、质量门禁、重写快照、三层记忆提交台、问题任务动作、张力诊断和局部 Diff 已形成可解释闭环。 |
 | Prompt Governance | 80% | In Progress | 核心生成、蓝图、诊断、改稿、Knowledge、Bible、章后抽取、审稿链路已接入 contract / guard。 |
 | UI 控制台化 | 60% | In Progress | 首页、工作台、Context Preview、张力改稿、重写提示已有控制台化改造；仍需浏览器逐项验收。 |
 | StoryOps Rebrand | 45% | In Progress | 用户可见品牌第一阶段完成；深层技术命名、视觉资产、About/Attribution 仍待完成。 |
@@ -25,23 +25,27 @@
 
 ### Phase 1：可信创作闭环 Beta
 
-- 状态：**Mostly Done**
-- 完成度：**75%**
+- 状态：**Beta**
+- 完成度：**85%**
 - 目标：把规划、生成、诊断、修订、确认、入库、续写打成可解释闭环。
 - 已完成：
   - 章节质量门禁。
   - 章节状态与锁定逻辑。
   - `draft_memory / pending_memory / canonical_memory` 基础结构。
+  - 章节工作台「记忆提交台」：可查看三层记忆、手动添加、draft → pending、pending/draft → canonical。
+  - 问题收件箱动作确认：修正文稿、接受设定、标记误报、忽略均有污染边界提示。
+  - Autopilot 监管状态卡展示停靠/风险原因，并解释最近快照回滚与「重写本章」的区别。
   - 重写本章的写前快照与软回退能力。
   - 张力诊断与修订草稿。
   - Context Preview 中展示 Authority Lock / Prompt Contract。
 - 未完成：
-  - 三层记忆在 UI 中还不够产品化。
-  - 问题收件箱动作还可以继续完善。
-  - 高风险章节自动停靠和回滚解释还不够完整。
+  - 三层记忆还缺批量处理、过滤、差异证据和跨章汇总视图。
+  - 问题收件箱还缺「更新 Bible / 接受新设定」的全链路可视化结果回放。
+  - 自动停靠策略仍需更多真实写作回归，确认严格/质量/全托管模式的后端停靠阈值。
 - 相关提交：
   - `db43f30 feat: build trustworthy creation loop`
   - `f58e41f feat: expose prompt contract and guard memory commits`
+  - `pending feat: productize chapter memory and issue handling`
 
 ### Phase 2：Prompt Governance
 
@@ -202,4 +206,3 @@
 2. 对应 `Phase` 的已完成/未完成清单。
 3. `Update Log` 的日期、说明和提交号。
 4. 如有新增风险，补充到对应阶段说明中。
-

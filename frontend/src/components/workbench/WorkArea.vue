@@ -122,6 +122,61 @@
                   </n-space>
                 </n-card>
 
+                <n-card size="small" class="memory-console-card" :bordered="true">
+                  <template #header>
+                    <n-space align="center" justify="space-between" style="width: 100%">
+                      <n-space align="center" :size="8">
+                        <span>记忆提交台</span>
+                        <n-tag size="tiny" type="default">draft / pending / canonical</n-tag>
+                      </n-space>
+                      <n-button size="tiny" secondary :loading="memoryLoading" @click="loadChapterMemory">刷新</n-button>
+                    </n-space>
+                  </template>
+                  <n-space vertical :size="8">
+                    <n-alert type="info" :show-icon="false" class="memory-console-hint">
+                      未确认内容先进入 draft/pending；只有 canonical 才作为后续强上下文。锁定章节或接受新设定前，请确认这里没有污染项。
+                    </n-alert>
+                    <n-space :size="8" wrap>
+                      <n-tag v-for="layer in memoryLayerDefs" :key="layer.key" :type="layer.type" round>
+                        {{ layer.label }} {{ memoryLayerGroups[layer.key].length }}
+                      </n-tag>
+                    </n-space>
+                    <n-input-group>
+                      <n-select v-model:value="newMemoryLayer" :options="memoryLayerOptions" style="width: 130px" />
+                      <n-input v-model:value="newMemoryContent" placeholder="添加本章记忆备注 / 待确认事实 / 权威设定说明" />
+                      <n-button type="primary" secondary :disabled="!newMemoryContent.trim()" @click="addChapterMemory">
+                        添加
+                      </n-button>
+                    </n-input-group>
+                    <n-collapse v-if="chapterMemoryEntries.length" accordion>
+                      <n-collapse-item v-for="layer in memoryLayerDefs" :key="layer.key" :name="layer.key">
+                        <template #header>
+                          {{ layer.label }} · {{ memoryLayerGroups[layer.key].length }}
+                        </template>
+                        <n-space v-if="memoryLayerGroups[layer.key].length" vertical :size="6">
+                          <n-card v-for="entry in memoryLayerGroups[layer.key]" :key="entry.id" size="small" :bordered="true" class="memory-entry-card">
+                            <n-space vertical :size="4">
+                              <n-space align="center" justify="space-between">
+                                <n-space :size="6" align="center">
+                                  <n-tag size="tiny" :type="layer.type">{{ entry.memory_layer }}</n-tag>
+                                  <n-text depth="3" class="memory-entry-meta">{{ entry.source }} · {{ entry.entry_type }}</n-text>
+                                </n-space>
+                                <n-space :size="6">
+                                  <n-button v-if="entry.memory_layer === 'draft'" size="tiny" secondary @click="promoteMemory(entry, 'pending')">转待确认</n-button>
+                                  <n-button v-if="entry.memory_layer !== 'canonical'" size="tiny" type="primary" secondary @click="promoteMemory(entry, 'canonical')">提交权威</n-button>
+                                </n-space>
+                              </n-space>
+                              <n-text class="memory-entry-content">{{ entry.content }}</n-text>
+                            </n-space>
+                          </n-card>
+                        </n-space>
+                        <n-empty v-else size="small" description="暂无该层记忆" />
+                      </n-collapse-item>
+                    </n-collapse>
+                    <n-empty v-else size="small" description="本章暂无记忆项。接受设定、标记误报或手动添加后会出现在这里。" />
+                  </n-space>
+                </n-card>
+
                 <div class="editor-body">
                   <n-input
                     v-model:value="chapterContent"
@@ -638,7 +693,7 @@ import {
 } from '../../api/workflow'
 import type { ContextPreviewResult, GenerateChapterWorkflowResponse } from '../../api/workflow'
 import { chapterApi } from '../../api/chapter'
-import type { ChapterIssueTaskDTO, ChapterQualityGateDTO, ChapterRevisionDraftDTO } from '../../api/chapter'
+import type { ChapterIssueTaskDTO, ChapterMemoryEntryDTO, ChapterQualityGateDTO, ChapterRevisionDraftDTO } from '../../api/chapter'
 import { tensionApi } from '../../api/tools'
 import type { TensionDiagnosis, TensionRevisionDraft } from '../../api/tools'
 import ChapterElementPanel from './ChapterElementPanel.vue'
@@ -873,6 +928,33 @@ const rewritingChapter = ref(false)
 const qualityGate = ref<ChapterQualityGateDTO | null>(null)
 const issueTasks = ref<ChapterIssueTaskDTO[]>([])
 const qualityGateLoading = ref(false)
+const chapterMemoryEntries = ref<ChapterMemoryEntryDTO[]>([])
+const memoryLoading = ref(false)
+const newMemoryLayer = ref<'draft' | 'pending' | 'canonical'>('draft')
+const newMemoryContent = ref('')
+
+const memoryLayerDefs = [
+  { key: 'draft', label: '草稿记忆', type: 'default', description: '暂存观察，不进入强上下文' },
+  { key: 'pending', label: '待确认记忆', type: 'warning', description: '可作为人工审阅队列' },
+  { key: 'canonical', label: '权威记忆', type: 'success', description: '锁定后进入后续强上下文' },
+] as const
+
+const memoryLayerOptions = memoryLayerDefs.map(layer => ({
+  label: `${layer.label} · ${layer.description}`,
+  value: layer.key,
+}))
+
+const memoryLayerGroups = computed<Record<'draft' | 'pending' | 'canonical', ChapterMemoryEntryDTO[]>>(() => {
+  const groups: Record<'draft' | 'pending' | 'canonical', ChapterMemoryEntryDTO[]> = {
+    draft: [],
+    pending: [],
+    canonical: [],
+  }
+  for (const entry of chapterMemoryEntries.value) {
+    if (entry.memory_layer in groups) groups[entry.memory_layer].push(entry)
+  }
+  return groups
+})
 
 const qualityGateLabel = computed(() => {
   const status = qualityGate.value?.gate_status
@@ -913,6 +995,72 @@ const loadQualityGate = async () => {
   }
 }
 
+const loadChapterMemory = async () => {
+  if (!currentChapter.value) {
+    chapterMemoryEntries.value = []
+    return
+  }
+  memoryLoading.value = true
+  try {
+    chapterMemoryEntries.value = await chapterApi.listMemory(props.slug, currentChapter.value.number)
+  } catch {
+    chapterMemoryEntries.value = []
+  } finally {
+    memoryLoading.value = false
+  }
+}
+
+const addChapterMemory = async () => {
+  if (!currentChapter.value) return
+  const content = newMemoryContent.value.trim()
+  if (!content) return
+  memoryLoading.value = true
+  try {
+    await chapterApi.addMemory(props.slug, currentChapter.value.number, {
+      memory_layer: newMemoryLayer.value,
+      source: 'author_note',
+      entry_type: newMemoryLayer.value === 'canonical' ? 'author_canonical_note' : 'author_note',
+      content,
+      payload: { added_from: 'workbench_memory_console' },
+    })
+    newMemoryContent.value = ''
+    await loadChapterMemory()
+    message.success(newMemoryLayer.value === 'canonical' ? '已添加权威记忆' : '已添加记忆项')
+  } catch {
+    message.error('添加记忆失败')
+  } finally {
+    memoryLoading.value = false
+  }
+}
+
+const promoteMemory = async (entry: ChapterMemoryEntryDTO, targetLayer: 'pending' | 'canonical') => {
+  if (!currentChapter.value) return
+  const run = async () => {
+    memoryLoading.value = true
+    try {
+      await chapterApi.promoteMemory(props.slug, currentChapter.value!.number, entry.id, targetLayer)
+      await loadChapterMemory()
+      message.success(targetLayer === 'canonical' ? '已提交为权威记忆' : '已转入待确认')
+    } catch {
+      message.error('记忆流转失败')
+    } finally {
+      memoryLoading.value = false
+    }
+  }
+  if (targetLayer === 'canonical') {
+    dialog.warning({
+      title: '提交为权威记忆？',
+      content: `这条记忆会进入后续章节的强上下文，请确认它不是污染项：\n\n${entry.content}`,
+      positiveText: '提交权威',
+      negativeText: '取消',
+      onPositiveClick: run,
+    })
+    return
+  }
+  await run()
+}
+
+
 function mergeWorkflowIssuesIntoTasks(result: GenerateChapterWorkflowResponse | null, chapterNumber: number) {
   if (!result?.consistency_report) return
   const reportItems = [
@@ -941,6 +1089,7 @@ const lockCurrentChapter = async () => {
   if (!currentChapter.value) return
   try {
     qualityGate.value = await chapterApi.lockChapter(props.slug, currentChapter.value.number)
+    await loadChapterMemory()
     message.success(qualityGate.value.can_enter_next ? '本章已锁定，可作为后续可信上下文' : '仍有门禁问题，暂未放行')
     emit('chapterUpdated')
   } catch {
@@ -1025,6 +1174,7 @@ const applyRevisionDraft = async (draftId: string) => {
     await chapterApi.applyRevisionDraft(props.slug, currentChapter.value.number, draftId)
     await handleReload()
     await loadQualityGate()
+    await loadChapterMemory()
     message.success('已采用修订草稿')
   } catch {
     message.error('采用修订草稿失败')
@@ -1040,25 +1190,62 @@ const revisionVariantLabel = (label: string) => {
   return map[label] ?? label
 }
 
+const issueActionCopy: Record<string, { title: string; content: string; positiveText: string; success: string }> = {
+  fix_text: {
+    title: '转为文稿修订任务？',
+    content: '系统会把你带回正文编辑区；这不会修改 Bible 或权威记忆，请在修改后重新保存/审稿。',
+    positiveText: '去修正文稿',
+    success: '已切回正文编辑区',
+  },
+  accept_new_setting: {
+    title: '接受为新设定？',
+    content: '该问题会转为 pending 记忆，不会直接进入 canonical；请在「记忆提交台」再次确认后再提交权威。',
+    positiveText: '接受到待确认',
+    success: '已加入待确认记忆',
+  },
+  mark_false_positive: {
+    title: '标记为误报？',
+    content: '系统会记录为 draft 记忆，避免后续反复提示；不会污染后续强上下文。',
+    positiveText: '标记误报',
+    success: '已标记为误报',
+  },
+  ignore: {
+    title: '忽略这个问题？',
+    content: '只会关闭当前任务，不写入记忆层；如果问题真实存在，后续检查可能再次出现。',
+    positiveText: '忽略',
+    success: '已忽略问题任务',
+  },
+}
+
 const applyIssueAction = async (task: ChapterIssueTaskDTO, action: string) => {
   const chapterNumber = currentChapter.value?.number ?? task.id.split(':')[1]
   if (!chapterNumber) return
-  try {
-    await chapterApi.applyIssueAction(
-      props.slug,
-      Number(chapterNumber),
-      task.id,
-      action,
-      task.title,
-    )
-    issueTasks.value = issueTasks.value.filter(item => item.id !== task.id)
-    if (action === 'fix_text') {
-      activeTab.value = 'editor'
-    }
-    message.success('问题任务已处理')
-  } catch {
-    message.error('处理问题任务失败')
-  }
+  const copy = issueActionCopy[action] ?? issueActionCopy.ignore
+  dialog.info({
+    title: copy.title,
+    content: `${copy.content}\n\n问题：${task.title}\n证据：${task.evidence || '无'}`,
+    positiveText: copy.positiveText,
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await chapterApi.applyIssueAction(
+          props.slug,
+          Number(chapterNumber),
+          task.id,
+          action,
+          task.title,
+        )
+        issueTasks.value = issueTasks.value.filter(item => item.id !== task.id)
+        if (action === 'fix_text') {
+          activeTab.value = 'editor'
+        }
+        await loadChapterMemory()
+        message.success(copy.success)
+      } catch {
+        message.error('处理问题任务失败')
+      }
+    },
+  })
 }
 
 const contextPreview = ref<ContextPreviewResult | null>(null)
@@ -1162,7 +1349,10 @@ watch(() => props.chapterContent, (newContent) => {
 
 watch(
   () => [props.slug, currentChapter.value?.number, props.chapterContent],
-  () => { void loadQualityGate() },
+  () => {
+    void loadQualityGate()
+    void loadChapterMemory()
+  },
   { immediate: true }
 )
 
@@ -1189,6 +1379,7 @@ const handleSave = async () => {
     await chapterApi.updateChapter(props.slug, currentChapter.value.id, { content: chapterContent.value })
     originalContent.value = chapterContent.value
     await loadQualityGate()
+    await loadChapterMemory()
     message.success('保存成功')
     emit('chapterUpdated')
   } catch (error) {
@@ -1205,6 +1396,7 @@ const handleReload = async () => {
     chapterContent.value = fresh.content ?? ''
     originalContent.value = fresh.content ?? ''
     await loadQualityGate()
+    await loadChapterMemory()
     message.success('已重新加载')
   } catch {
     message.error('加载失败，请稍后重试')
@@ -1250,6 +1442,7 @@ const rewriteCurrentChapter = async () => {
     chapterContent.value = ''
     originalContent.value = ''
     await loadQualityGate()
+    await loadChapterMemory()
     emit('chapterUpdated')
     const mode = result.mode === 'snapshot_restore' ? '已恢复写前快照' : '已执行软重写'
     message.success(`${mode}，本章已回到草稿状态`)
@@ -1411,6 +1604,7 @@ const handleSaveGenerated = async () => {
       originalContent.value = generatedContent.value
     }
     await loadQualityGate()
+    await loadChapterMemory()
     message.success(`已保存到第 ${saveTarget.number} 章`)
     emit('chapterUpdated')
     showGenerateModal.value = false
@@ -1790,6 +1984,7 @@ defineExpose({ ensureAssistedMode })
   color: #fff;
   border-bottom: 0 !important;
 }
+
 .work-title-wrap::before {
   content: 'PROJECT / NOVEL COMMAND CENTER';
   display: block;

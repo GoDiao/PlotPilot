@@ -170,6 +170,11 @@ class ChapterIssueActionRequest(BaseModel):
     memo: str = ""
 
 
+class PromoteMemoryEntryRequest(BaseModel):
+    entry_id: str
+    target_layer: Literal["pending", "canonical"] = "canonical"
+
+
 class ApplyRevisionDraftRequest(BaseModel):
     draft_id: str
 
@@ -522,6 +527,16 @@ async def add_chapter_memory(
         request.payload,
         request.issue_id,
     )
+
+
+@router.post("/{novel_id}/chapters/{chapter_number}/memory/promote")
+async def promote_chapter_memory(
+    novel_id: str,
+    request: PromoteMemoryEntryRequest,
+    chapter_number: int = Path(..., gt=0, description="章节编号"),
+    service: TrustworthyCreationService = Depends(get_trustworthy_creation_service),
+):
+    return service.promote_memory_entry(request.entry_id, request.target_layer)
 
 
 @router.post("/{novel_id}/chapters/{chapter_number}/issue-actions")
