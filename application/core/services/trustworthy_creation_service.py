@@ -5,6 +5,7 @@ import json
 import uuid
 from typing import Any
 
+from application.ai.prompt_contract import build_tension_revision_contract
 from application.core.services.chapter_service import ChapterService
 from domain.ai.services.llm_service import GenerationConfig, LLMService
 from domain.ai.value_objects.prompt import Prompt
@@ -237,15 +238,14 @@ class TrustworthyCreationService:
     ) -> str:
         if self.llm_service is None:
             return self._fallback_revision(original, diagnosis, instruction)
-        system = "你是长篇小说修订总编。只输出修订后的完整正文，不要解释。"
-        lock_block = f"本章 Authority Lock（不得违反）:\n{authority_lock}\n\n" if authority_lock.strip() else ""
-        user = (
-            f"{lock_block}"
-            f"修订策略：{instruction}\n"
-            f"张力诊断：{json.dumps(diagnosis, ensure_ascii=False)}\n\n"
-            f"原文：\n{original}\n\n"
-            "要求：保留人物姓名、POV、世界设定和主要事件；只修改需要修订的段落；"
-            "按计划目标张力修订，不要默认把所有章节推成高张力；必须保留章末承接。"
+        system = "你是长篇小说控制台的保守修订引擎。只输出修订后的正文，不要解释。"
+        target_text = (
+            f"本章 Authority Lock（不得违反）:\n{authority_lock}\n\n" if authority_lock.strip() else ""
+        ) + f"修订策略：{instruction}"
+        user = build_tension_revision_contract(
+            diagnosis=json.dumps(diagnosis, ensure_ascii=False),
+            target_text=target_text,
+            source_text=original,
         )
         result = await self.llm_service.generate(
             Prompt(system=system, user=user),

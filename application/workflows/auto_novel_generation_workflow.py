@@ -23,6 +23,7 @@ from domain.novel.value_objects.consistency_context import ConsistencyContext
 from domain.novel.value_objects.novel_id import NovelId
 from domain.ai.services.llm_service import LLMService, GenerationConfig
 from domain.ai.value_objects.prompt import Prompt
+from application.ai.prompt_contract import build_chapter_generation_contract
 from application.ai.llm_output_sanitize import strip_reasoning_artifacts
 from application.workflows.beat_continuation import format_prior_draft_for_prompt
 
@@ -858,35 +859,15 @@ class AutoNovelGenerationWorkflow:
             except Exception as e:
                 logger.warning(f"MemoryEngine fact_lock 构建失败: {e}")
 
-        # ⚡ 提示词集中管理说明：
-        # 此模板对应 prompts_defaults.json 中的 id=workflow-chapter-generation
-        # 如需修改提示词内容，请编辑 JSON 文件而非此代码文件
-        system_message = f"""你是一位专业的网络小说作家。根据以下上下文撰写章节内容。
-
-{planning_section}{voice_block}{context}
-
-{fact_lock}
-写作要求：
-1. 必须有多个人物互动（至少2-3个角色出场）
-2. 必须有对话（不能只有独白和叙述）
-3. 必须有冲突或张力（人物之间的矛盾、目标阻碍、悬念等）
-4. 保持人物性格一致
-5. 推进情节发展
-6. 使用生动的场景描写和细节
-{length_rule}
-8. 用中文写作，使用第三人称叙事{beat_extra}"""
-
-        user_message = f"""请根据以下大纲撰写本章内容：
-
-{outline}
-
-关键要求（必须遵守）：
-- 至少2-3个角色出场并互动
-- 必须包含对话场景（不少于3段对话）
-- 必须有明确的冲突或戏剧张力
-- 场景要具体生动，不要空泛叙述
-- 推进主线情节，不要原地踏步
-- 结尾要有悬念或转折"""
+        system_message, user_message = build_chapter_generation_contract(
+            outline=outline,
+            length_rule=length_rule,
+            beat_extra=beat_extra,
+            planning_section=planning_section,
+            voice_block=voice_block,
+            context=context,
+            fact_lock=fact_lock,
+        )
 
         if beat_mode and prior_in_chapter:
             user_message += f"""

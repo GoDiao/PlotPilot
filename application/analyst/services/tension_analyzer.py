@@ -8,6 +8,7 @@ from application.ai.structured_json_pipeline import (
     sanitize_llm_output,
     validate_json_schema,
 )
+from application.ai.prompt_contract import infer_tension_policy
 from application.analyst.tension.schema import TensionDiagnosisLlmPayload
 from application.workbench.dtos.writer_block_dto import TensionDiagnosis, TensionSlingshotRequest
 from domain.novel.repositories.chapter_repository import ChapterRepository
@@ -220,7 +221,9 @@ class TensionAnalyzer:
 - 情绪类型: {', '.join(stats['emotion_tags']) if stats['emotion_tags'] else '无'}
 """
 
-        return f"""你是小说创作顾问，专门帮助作者诊断章节张力与卡文原因。
+        tension_policy = infer_tension_policy(repository_context)
+
+        return f"""你是小说创作控制台的张力审稿员，专门判断章节是否符合计划张力，而不是盲目追高。
 
 当前小说ID: {request.novel_id}
 卡文章节: 第{request.chapter_number}章
@@ -230,13 +233,15 @@ class TensionAnalyzer:
 {repo_block}
 {stats_text}
 
-请分析当前章节的张力水平，诊断卡文原因，并提供具体可操作的建议。
+请分析当前章节是否贴合蓝图目标、上下文承接和下一章需要，诊断卡文原因，并提供具体可操作的建议。
+
+计划张力原则: {tension_policy}
 
 要求:
 1. 诊断要结合统计数据、事件内容与补充上下文（若有）。
 2. 张力水平分为: low（低）、medium（中）、high（高）。
 3. 缺失元素可包括: conflict、stakes、action、consequence、rising_tension、external_conflict、internal_conflict 等。
-4. 建议必须是动作导向的，使用“引入”“增加”“设置”“让”等动词开头。
+4. 建议必须是动作导向的，优先使用“补足”“压缩”“承接”“兑现”“延后”“澄清”等控制台式动作；只有目标张力不足时才使用“增加/强化”。
 5. 建议要具体，不要泛泛而谈。
 6. 如果补充上下文存在“本章结构蓝图”，请以计划功能、目标张力、张力阶段为标准：铺垫/余波/过渡章低张力可以通过；爆点/反转/揭示章低于计划才判为需要加强。
 7. 不要把所有章节都建议改成高张力；建议应指向“贴合计划张力”和“下一章承接”。

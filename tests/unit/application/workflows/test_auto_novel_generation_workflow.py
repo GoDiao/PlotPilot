@@ -34,6 +34,7 @@ def mock_context_builder():
             "total": 9250
         }
     }
+    builder.magnify_outline_to_beats.return_value = []
     # 不再需要 estimate_tokens 方法
     return builder
 
@@ -111,6 +112,23 @@ def test_assemble_chapter_bundle_context_text_uses_t2_t3_headers():
     assert f"=== {CHAPTER_CONTEXT_LAYER2_HEADER} ===" in s
     assert f"=== {CHAPTER_CONTEXT_LAYER3_HEADER} ===" in s
     assert "L1" in s and "L2" in s and "L3" in s
+
+
+def test_build_prompt_uses_blueprint_aware_contract(workflow):
+    prompt = workflow._build_prompt(
+        context="Context",
+        outline="本章为低张力余波章，处理上章后果并交接下一章线索。",
+        plot_tension="目标张力：2/10；张力阶段：余波/缓冲",
+        beat_target_words=1000,
+    )
+
+    combined = prompt.system + "\n" + prompt.user
+    assert "Authority Lock" in combined
+    assert "不要为了刺激感强行制造冲突" in combined
+    assert "不得机械凑数量" in combined
+    assert "必须包含对话场景（不少于3段对话）" not in combined
+    assert "至少2-3个角色出场" not in combined
+    assert "结尾要有悬念或转折" not in combined
 
 
 class TestGenerateChapter:
@@ -571,9 +589,16 @@ class TestStyleIntegration:
         # 验证 LLM 被调用
         assert mock_llm_service.generate.called
 
-        # 获取传递给 LLM 的 prompt
-        call_args = mock_llm_service.generate.call_args
-        prompt = call_args[0][0]
+        # 获取传递给章节生成 LLM 的 prompt（后续状态提取也可能调用 LLM）
+        prompt = next(
+            (
+                call.args[0]
+                for call in mock_llm_service.generate.call_args_list
+                if call.args and hasattr(call.args[0], "system")
+            ),
+            None,
+        )
+        assert prompt is not None
 
         # 验证 prompt 包含风格指纹摘要
         assert "形容词密度" in prompt.system or "平均句长" in prompt.system

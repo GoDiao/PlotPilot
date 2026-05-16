@@ -21,6 +21,7 @@ from infrastructure.persistence.database.story_node_repository import StoryNodeR
 from infrastructure.persistence.database.chapter_element_repository import ChapterElementRepository
 from domain.ai.services.llm_service import LLMService, GenerationConfig
 from domain.ai.value_objects.prompt import Prompt
+from application.ai.prompt_contract import build_blueprint_planning_principles
 from application.audit.services.macro_merge_engine import MacroMergeEngine, MergePlan, MergeConflictException
 
 logger = logging.getLogger(__name__)
@@ -1699,7 +1700,7 @@ class ContinuousPlanningService:
    每幕约 {rec_chapters_per_act} 章。请严格按此数量框架规划。
 2. 英雄之旅：平凡世界→冒险召唤→试炼→深渊→蜕变→归来
 3. 情绪曲线：开篇抓人→中段起伏（小高潮间隔2-3幕）→终局爆发
-4. 钩子密度：每部结尾必须有大悬念，每卷结尾有中等悬念，每幕结尾有小悬念
+4. 钩子密度：只在结构需要的位置设置悬念；铺垫、余波、缓冲幕可以用信息交接或情绪落点承接下一幕
 </STORY_THEORY>
 
 # 核心推演铁律（The Icebreaker Rules V4）
@@ -1709,10 +1710,10 @@ class ContinuousPlanningService:
    - 每卷应包含 {rec_acts_per_volume} 幕左右，不要出现某卷只有1-2幕的情况
    - 每幕约 {rec_chapters_per_act} 章（重要情节的幕可以多几章，过渡幕可以少几章）
 
-2. 【极致冲突】每一幕必须包含：
-   - 核心对抗（谁 vs 谁）
-   - 赌注（失败会失去什么）
-   - 转折（预期违背）
+2. 【计划张力】每一幕必须包含：
+   - 叙事功能（铺垫/推进/揭示/余波/高潮/缓冲等）
+   - 目标张力与张力阶段（允许低、中、高形成曲线）
+   - 章末承接点（不等同于强行悬念）
 
 3. 【世界观融合】必须深度融合提供的设定：
    - 主要角色必须出现在关键幕中
@@ -1724,6 +1725,8 @@ class ContinuousPlanningService:
    - 中间部：主角经历重大失败/觉醒
    - 最后一部：所有伏笔收束，终极对决
 </CONSTRAINTS>
+
+{build_blueprint_planning_principles()}
 
 # 输出格式
 请直接输出JSON：
@@ -1890,8 +1893,8 @@ class ContinuousPlanningService:
 
 2. 情绪曲线设计：
    - 每部内部：起→承→转→合
-   - 幕间关系：悬念→揭示→更大悬念
-   - 高潮分布：每部1个大高潮，每卷1个中高潮，每2-3幕1个小高潮
+   - 幕间关系：铺垫→推进→揭示→余波→再推进
+   - 高潮分布：每部1个大高潮，每卷1个中高潮，每2-3幕1个小高潮；高潮之间必须有缓冲和承接
 
 3. 角色弧光整合：
    - 主角必须在结构节点处经历关键转变
@@ -1924,15 +1927,17 @@ class ContinuousPlanningService:
 5. 【中段支撑】
    - 中间部分必须设计"次要反派的崛起"或"主角信念的暂时崩溃"
    - 每3-4幕必须有一个情绪转折点（希望→绝望，或反之）
-   - 避免"中段塌陷"：确保中间幕的冲突强度不低于首尾
+   - 避免"中段塌陷"：确保中间幕有清晰目标、信息增量和角色变化，不要求每幕冲突强度都不低于首尾
 
 6. 【章数分配】
    - 每幕必须标注 estimated_chapters（参考平均每幕{avg_chapters_per_act}章）
    - 重要幕（转折点、高潮）可分配更多章数
-   - 过渡幕可分配较少章数，但必须有冲突推进
+   - 过渡幕可分配较少章数，但必须有承接、信息增量或角色变化，不强行制造冲突
 </CONSTRAINTS>
 
 {pacing_guide}
+
+{build_blueprint_planning_principles()}
 
 # 输出要求
 请直接输出JSON格式，层级必须严格吻合结构网格。
