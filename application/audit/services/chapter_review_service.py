@@ -22,6 +22,7 @@ from domain.novel.repositories.timeline_repository import TimelineRepository
 from domain.novel.repositories.storyline_repository import StorylineRepository
 from domain.novel.repositories.foreshadowing_repository import ForeshadowingRepository
 from application.ai.llm_json_extract import parse_llm_json_to_dict
+from application.ai.prompt_contract import build_review_guard
 from domain.ai.services.llm_service import LLMService, GenerationConfig
 from domain.ai.value_objects.prompt import Prompt
 
@@ -180,7 +181,7 @@ class ChapterReviewService:
                 chapter_content=chapter.content
             )
 
-            prompt = Prompt(system="你是小说审稿助手，专门检查人物一致性。", user=prompt_text)
+        prompt = Prompt(system=f"你是长篇小说控制台的一致性审稿员，专门检查人物一致性。\n{build_review_guard()}", user=prompt_text)
             config = GenerationConfig(
                 model=self.model,
                 max_tokens=self._DEFAULT_MAX_TOKENS,
@@ -232,7 +233,7 @@ class ChapterReviewService:
                 chapter_content=chapter.content
             )
 
-            prompt = Prompt(system="你是小说审稿助手，专门检查时间线一致性。", user=prompt_text)
+            prompt = Prompt(system=f"你是长篇小说控制台的一致性审稿员，专门检查时间线一致性。\n{build_review_guard()}", user=prompt_text)
             config = GenerationConfig(
                 model=self.model,
                 max_tokens=self._DEFAULT_MAX_TOKENS,
@@ -277,7 +278,7 @@ class ChapterReviewService:
             chapter_content=chapter.content
         )
 
-        prompt = Prompt(system="你是小说审稿助手，专门检查故事线连贯性。", user=prompt_text)
+        prompt = Prompt(system=f"你是长篇小说控制台的一致性审稿员，专门检查故事线连贯性。\n{build_review_guard()}", user=prompt_text)
         config = GenerationConfig(
             model=self.model,
             max_tokens=self._DEFAULT_MAX_TOKENS,
@@ -329,7 +330,7 @@ class ChapterReviewService:
                 chapter_content=chapter.content
             )
 
-            prompt = Prompt(system="你是小说审稿助手，专门检查伏笔使用。", user=prompt_text)
+            prompt = Prompt(system=f"你是长篇小说控制台的一致性审稿员，专门检查伏笔使用。\n{build_review_guard()}", user=prompt_text)
             config = GenerationConfig(
                 model=self.model,
                 max_tokens=self._DEFAULT_MAX_TOKENS,
@@ -376,7 +377,7 @@ class ChapterReviewService:
         if issues:
             prompt_text = self._build_improvement_suggestions_prompt(chapter, issues)
 
-            prompt = Prompt(system="你是小说审稿助手，专门提供改进建议。", user=prompt_text)
+            prompt = Prompt(system=f"你是长篇小说控制台的一致性审稿员，专门提供改进建议。\n{build_review_guard()}", user=prompt_text)
             config = GenerationConfig(
                 model=self.model,
                 max_tokens=self._DEFAULT_MAX_TOKENS,

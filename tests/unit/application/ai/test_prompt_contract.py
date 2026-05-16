@@ -1,5 +1,7 @@
 from application.ai.prompt_contract import (
     build_chapter_generation_contract,
+    build_memory_extraction_guard,
+    build_review_guard,
     build_tension_revision_contract,
     infer_tension_policy,
 )
@@ -39,3 +41,12 @@ def test_revision_contract_is_patch_style_and_authority_safe():
     assert "不改变主角" in prompt
     assert "主角李维" in prompt
 
+
+def test_memory_and_review_guards_prevent_pollution():
+    memory_guard = build_memory_extraction_guard()
+    review_guard = build_review_guard()
+
+    assert "疑似漂移" in memory_guard
+    assert "不要升级为权威设定" in memory_guard
+    assert "正文证据" in review_guard
+    assert "标记误报" in review_guard

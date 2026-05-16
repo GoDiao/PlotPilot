@@ -412,6 +412,24 @@
                     </n-text>
                   </n-space>
                 </n-card>
+                <n-card v-if="contextPreview.prompt_contract?.length" size="small" class="authority-lock-card" :bordered="true">
+                  <template #header>
+                    <n-space align="center" :size="6">
+                      <span style="font-size:13px;font-weight:600">Prompt Contract</span>
+                      <n-tag size="tiny" type="success">generation guard</n-tag>
+                    </n-space>
+                  </template>
+                  <n-space vertical :size="4">
+                    <n-text
+                      v-for="item in contextPreview.prompt_contract"
+                      :key="item"
+                      depth="3"
+                      class="authority-lock-line"
+                    >
+                      {{ item }}
+                    </n-text>
+                  </n-space>
+                </n-card>
                 <n-collapse>
                   <n-collapse-item title="Layer 1 · 核心设定（Bible + 伏笔）" name="l1">
                     <n-code :code="contextPreview.layer1.content" word-wrap style="font-size:11px;max-height:200px;overflow:auto" />

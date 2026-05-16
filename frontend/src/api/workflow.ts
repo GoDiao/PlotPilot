@@ -419,6 +419,7 @@ export interface ContextPreviewResult {
   selected_authority?: string[]
   outline_source?: string
   selected_outline?: string
+  prompt_contract?: string[]
 }
 
 export async function retrieveContext(

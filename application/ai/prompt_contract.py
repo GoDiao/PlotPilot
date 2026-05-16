@@ -117,3 +117,21 @@ def build_blueprint_planning_principles() -> str:
 - 每个章节蓝图必须能指导正文写作：功能、目标张力、必写事件、禁写事项、承接点要清楚。
 - 章末承接点服务下一章连续性，不等同于强行 cliffhanger。"""
 
+
+def build_memory_extraction_guard() -> str:
+    """Shared guard for post-chapter memory and knowledge extraction prompts."""
+    return """【Memory Commit Guard / 记忆提交防污染】
+- 只抽取正文中明确出现、可被文本证据支持的事实；不要把推测、修辞、梦境或错误生成当成设定。
+- 新人物、新地点、新关系、新伏笔默认是候选事实；若与主角/POV/核心身份高度重合但姓名不同，应标记为疑似漂移，不要升级为权威设定。
+- 旧摘要、召回内容和自动抽取状态不得覆盖 Premise Lock、Bible 核心设定、Authority Lock 或章节蓝图。
+- 伏笔回收必须与待回收清单高度匹配；不要因为主题相似就判定已回收。
+- 时间线事件必须来自本章明确叙述；不确定时间点应写相对描述，不要编造历法。"""
+
+
+def build_review_guard() -> str:
+    """Shared guard for consistency review prompts."""
+    return """【Review Guard / 审稿证据规则】
+- 每条问题必须基于正文证据和设定依据；不能只因为角色未在局部资料中出现就直接判严重错误。
+- 如果资料缺失或上下文不足，优先输出 warning/suggestion，并说明需要用户确认。
+- 低优先级历史摘要与高优先级设定冲突时，应提示冲突来源，不得建议覆盖权威设定。
+- 建议动作要可执行：修正文稿、更新 Bible、标记误报、接受新设定或暂不入库。"""

@@ -98,6 +98,13 @@ def retrieve_context(
             selected_authority=preflight.selected_authority,
             outline_source=preflight.outline_source,
             selected_outline=preflight.selected_outline,
+            prompt_contract=[
+                "Authority Lock 优先于旧摘要、向量召回和自动抽取状态",
+                "章节蓝图决定叙事功能、目标张力、必写/禁写和章末承接",
+                "对话、冲突、悬念只在蓝图或场景需要时使用，不机械凑数量",
+                "低张力铺垫/余波/缓冲章可以通过；诊断标准是贴合计划张力",
+                "章后记忆提交只采纳正文明确证据，疑似漂移不自动升级为权威设定",
+            ],
         )
     except Exception as e:
         logger.exception("context retrieve failed for novel_id=%s", novel_id)

@@ -116,3 +116,4 @@ class ContextRetrieveResponse(BaseModel):
     selected_authority: list[str] = Field(default_factory=list)
     outline_source: str = ""
     selected_outline: str = ""
+    prompt_contract: list[str] = Field(default_factory=list)

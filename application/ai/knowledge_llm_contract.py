@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError
 
 from application.ai.llm_json_extract import parse_llm_json_to_dict
+from application.ai.prompt_contract import build_memory_extraction_guard
 
 # ---------------------------------------------------------------------------
 # 与 LLM 约定的形状（字段越少越好，其余由持久化层补全）
@@ -51,14 +52,16 @@ class LlmInitialKnowledgePayload(BaseModel):
 # 提示词（角色 + 契约说明；与校验模型同源维护）
 # ---------------------------------------------------------------------------
 
-_INITIAL_KNOWLEDGE_INSTRUCTIONS = """你是专业的小说知识图谱构建助手。根据小说标题和设定，生成核心知识。
+_INITIAL_KNOWLEDGE_INSTRUCTIONS = """你是长篇小说资料管理员。根据小说标题和设定，生成初始核心知识；目标是建立 Premise Lock，不是扩写剧情。
+
+""" + build_memory_extraction_guard() + """
 
 **字段契约（多一字段即非法，不要输出 provenance、source_type、chapter_element_id 等）：**
 - premise_lock: string，一句话核心梗概（约 50～100 字）
 - facts: array，每项仅含 id, subject, predicate, object, note（note 可省略或空字符串）
 - id 使用稳定前缀如 fact-001、fact-002
 - object 为宾语字符串（JSON 键名必须是 "object"）
-- 提取 5～10 条核心设定三元组：主要角色身份、核心地点、关键规则/能力；只写确定设定，不要推测
+- 提取 5～10 条核心设定三元组：主要角色身份、核心地点、关键规则/能力；只写用户设定中确定的信息，不要推测
 
 **source_type、推断溯源由服务端写入；模型不要编造。**
 

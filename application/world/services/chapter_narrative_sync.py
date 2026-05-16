@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from domain.ai.services.llm_service import LLMService, GenerationConfig
 from domain.ai.value_objects.prompt import Prompt
+from application.ai.prompt_contract import build_memory_extraction_guard
 from domain.novel.value_objects.foreshadowing import (
     Foreshadowing,
     ForeshadowingStatus,
@@ -117,7 +118,10 @@ async def llm_chapter_extract_bundle(
 
 请判断本章是否呼应/回收了上述伏笔。如果章节内容明确揭示或回应了某个伏笔的悬念，则在 consumed_foreshadows 中列出该伏笔的原描述（需与清单中的描述高度匹配）。"""
 
-    system = f"""你是网文叙事编辑与信息抽取。根据章节正文输出**一个** JSON 对象（不要其它说明文字）：
+    system = f"""你是长篇小说控制台的章后记忆提交员。根据章节正文输出**一个** JSON 对象（不要其它说明文字）：
+
+{build_memory_extraction_guard()}
+
 {{
   "summary": "string，200～500 字，章末叙事总结，便于检索与衔接",
   "key_events": "string",
