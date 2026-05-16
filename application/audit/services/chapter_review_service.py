@@ -181,7 +181,7 @@ class ChapterReviewService:
                 chapter_content=chapter.content
             )
 
-        prompt = Prompt(system=f"你是长篇小说控制台的一致性审稿员，专门检查人物一致性。\n{build_review_guard()}", user=prompt_text)
+            prompt = Prompt(system=f"你是长篇小说控制台的一致性审稿员，专门检查人物一致性。\n{build_review_guard()}", user=prompt_text)
             config = GenerationConfig(
                 model=self.model,
                 max_tokens=self._DEFAULT_MAX_TOKENS,
