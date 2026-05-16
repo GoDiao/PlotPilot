@@ -520,7 +520,10 @@
     >
       <n-space vertical :size="16">
         <n-alert type="info" :show-icon="false" style="font-size:13px">
-          诊断当前章节张力缺口，识别缺失元素并给出突破建议。
+          诊断当前章节是否贴合蓝图目标张力；低张力铺垫/余波章可以通过，不会默认把每章都推成高燃。
+        </n-alert>
+        <n-alert type="default" :show-icon="false" style="font-size:12px">
+          Diff 改稿遵守 Authority Lock：只做局部修订，保留主角、POV、世界观锁与章末承接。
         </n-alert>
 
         <n-form-item label="问题描述（可选）" label-placement="top" :show-feedback="false">
@@ -585,11 +588,11 @@
                 :loading="tensionRevisionLoading"
                 @click="createTensionRevisionDrafts"
               >
-                生成改稿 Diff
+                生成局部 Diff 改稿
               </n-button>
             </n-space>
             <div v-if="tensionRevisionDrafts.length">
-              <n-text strong style="display:block;margin-bottom:6px">修订草稿</n-text>
+              <n-text strong style="display:block;margin-bottom:6px">修订草稿 · 局部改稿候选</n-text>
               <n-collapse accordion>
                 <n-collapse-item
                   v-for="draft in tensionRevisionDrafts"
@@ -599,6 +602,9 @@
                 >
                   <n-space vertical :size="8">
                     <n-code :code="draft.diff_text || draft.revised_content" word-wrap class="revision-diff-code" />
+                    <n-alert type="warning" :show-icon="false" style="font-size:12px">
+                      采用后会写回本章正文；如不满意，可使用“重写本章”按快照回退副作用。
+                    </n-alert>
                     <n-space justify="end">
                       <n-button size="small" type="primary" @click="applyRevisionDraft(draft.id)">
                         采用此版
@@ -1216,9 +1222,14 @@ const confirmRewriteCurrentChapter = async () => {
     const modeText = preview.mode === 'snapshot_restore'
       ? '将使用写前快照恢复 Bible、伏笔、图谱、记忆和本章副作用。'
       : '没有写前快照：只清理本章可定位副作用，可能残留全局污染。'
+    const impactText = [
+      '将清空/恢复：正文、质量门禁、章节摘要、叙事事件、修订草稿、章节记忆。',
+      '有快照时会恢复：Bible 增量、伏笔账本、时间线、知识图谱与记忆状态。',
+      preview.has_later_completed_chapters ? '检测到后续已完成章节：本次只回退本章，后续章节可能需要重新审稿。' : '未检测到需要联动回退的后续完成章节。',
+    ].join('\n')
     dialog.warning({
       title: `重写第 ${chapter.number} 章？`,
-      content: `${modeText}\n\n${warningText}\n\n此操作会清空本章正文并置为草稿，不会自动重新生成。`,
+      content: `${modeText}\n\n${impactText}\n\n${warningText}\n\n此操作会清空本章正文并置为草稿，不会自动重新生成。`,
       positiveText: '确认重写',
       negativeText: '取消',
       onPositiveClick: async () => {
@@ -1823,15 +1834,21 @@ defineExpose({ ensureAssistedMode })
 
 <style scoped>
 .work-body {
+  min-height: 0 !important;
   overflow: auto !important;
+  overscroll-behavior: contain;
 }
 .managed-stack {
+  min-height: 0 !important;
+  max-height: 100% !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
-  padding-bottom: 24px;
+  padding: 0 0 32px;
+  scrollbar-gutter: stable;
 }
 .managed-autopilot {
   flex-shrink: 0 !important;
+  min-width: 0 !important;
 }
 .managed-monitor {
   flex: 0 0 auto !important;

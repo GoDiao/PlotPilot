@@ -21,25 +21,34 @@
 
         <!-- Create Card -->
         <n-card class="create-card" :bordered="false">
-          <n-space vertical :size="20">
+          <n-space vertical :size="18">
             <div class="create-header">
               <div class="create-title-wrap">
-                <span class="create-icon">✨</span>
-                <h3 class="create-title">新建书目</h3>
+                <span class="create-icon">▣</span>
+                <div>
+                  <h3 class="create-title">新建项目控制台</h3>
+                  <p class="create-subtitle">Premise → Bible → 蓝图 → 首章上下文，一次性建立写作任务</p>
+                </div>
               </div>
               <n-button text type="primary" @click="showAdvanced = !showAdvanced">
                 <template #icon>
                   <n-icon><component :is="showAdvanced ? IconChevronUp : IconChevronDown" /></n-icon>
                 </template>
-                {{ showAdvanced ? '收起高级' : '高级（自定义章数/每章字数）' }}
+                {{ showAdvanced ? '收起运行参数' : '运行参数' }}
               </n-button>
+            </div>
+
+            <div class="create-console-strip">
+              <span>Input · 故事 Premise</span>
+              <span>Config · 类型与篇幅</span>
+              <span>Output · 结构蓝图</span>
             </div>
 
             <n-input
               ref="createInputRef"
               v-model:value="newBook.premise"
               type="textarea"
-              placeholder="用一段话写清主线与爽点预期（不超过 2000 字）…&#10;&#10;例如：废柴赘婿觉醒签到系统，从被退婚到一方巨擘。"
+              placeholder="输入故事 Premise、主角、核心目标、读者期待与禁写事项（不超过 2000 字）…&#10;&#10;例如：主角陈渊，边境星系考古员，在遗迹中发现联邦隐瞒的文明断层；禁写无铺垫机械降神。"
               :rows="5"
               :disabled="creating"
               size="large"
@@ -72,7 +81,7 @@
             </n-grid>
 
             <div v-show="!showAdvanced" class="length-tier-block">
-              <div class="length-tier-label">目标篇幅（选一个即可，系统按网文常用节奏推导章数）</div>
+              <div class="length-tier-label">目标篇幅 · 系统会据此推导幕/章蓝图与每章目标字数</div>
               <n-radio-group v-model:value="lengthTier" name="lengthTier" class="length-tier-group">
                 <n-space :size="14" :wrap="true" align="flex-start" class="length-tier-space">
                   <n-radio
@@ -870,9 +879,40 @@ onMounted(() => {
   font-weight: 600;
 }
 
+.create-subtitle {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--app-text-secondary);
+  line-height: 1.45;
+}
+
+.create-console-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.035);
+}
+
+.create-console-strip span {
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: var(--app-surface);
+  color: var(--app-text-secondary);
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .premise-input :deep(textarea) {
   font-size: 15px;
   line-height: 1.6;
+  font-family: var(--app-font-family, inherit);
 }
 
 .preset-row {

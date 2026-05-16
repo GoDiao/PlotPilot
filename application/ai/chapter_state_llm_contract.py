@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from application.ai.llm_json_extract import parse_llm_json_to_dict
+from application.ai.prompt_contract import build_memory_extraction_guard
 from domain.novel.value_objects.chapter_state import ChapterState
 
 # 防止异常大响应拖垮下游；正常章节提取远小于此
@@ -32,7 +33,9 @@ class ChapterStateLlmPayload(BaseModel):
     new_storylines: List[Dict[str, Any]] = Field(default_factory=list, max_length=_MAX_ITEMS)
 
 
-_CHAPTER_STATE_SYSTEM = """你是一个专业的小说内容分析助手。你的任务是从章节内容中提取结构化信息。
+_CHAPTER_STATE_SYSTEM = """你是长篇小说控制台的章节状态抽取员。你的任务是从章节正文中提取结构化信息。
+
+""" + build_memory_extraction_guard() + """
 
 请提取以下信息并以 JSON 格式返回（根对象**仅允许**下列九个键，不要增加其他顶层字段）：
 

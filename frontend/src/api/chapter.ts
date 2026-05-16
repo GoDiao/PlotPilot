@@ -112,6 +112,7 @@ export interface ChapterRewritePreviewDTO {
   mode: 'snapshot_restore' | 'soft_reset' | string
   snapshot?: Record<string, unknown> | null
   warnings: string[]
+  has_later_completed_chapters?: boolean
 }
 
 export const chapterApi = {

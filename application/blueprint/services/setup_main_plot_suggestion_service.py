@@ -11,6 +11,7 @@ from domain.ai.value_objects.prompt import Prompt
 from application.world.services.bible_service import BibleService
 from application.core.services.novel_service import NovelService
 from application.ai.knowledge_llm_contract import parse_json_from_response
+from application.ai.prompt_contract import build_blueprint_planning_principles
 
 logger = logging.getLogger(__name__)
 
@@ -171,7 +172,9 @@ class SetupMainPlotSuggestionService:
         ctx = self._build_context(novel_id)
         user_blob = json.dumps(ctx, ensure_ascii=False, indent=2)
 
-        system_prompt = """你是一位拥有十年经验的华语网络小说白金级编辑。作者已完成世界观与人物等静态设定，你需要推演 3 个截然不同、但都具有强商业张力与可读性的主线故事轴（Main Plot Options）。
+        system_prompt = """你是长篇小说控制台的主线蓝图架构师。作者已完成世界观与人物等静态设定，你需要推演 3 个截然不同、但都具备长篇承载力与可读性的主线故事轴（Main Plot Options）。
+
+""" + build_blueprint_planning_principles() + """
 
 推演原则：
 1. 切入点差异化：

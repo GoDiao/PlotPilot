@@ -26,6 +26,7 @@ from domain.novel.repositories.chapter_repository import ChapterRepository
 from domain.novel.repositories.foreshadowing_repository import ForeshadowingRepository
 from infrastructure.persistence.database.story_node_repository import StoryNodeRepository
 from domain.structure.story_node import NodeType
+from application.ai.prompt_contract import build_memory_extraction_guard
 
 logger = logging.getLogger(__name__)
 

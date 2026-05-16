@@ -6,14 +6,16 @@ import os
 from typing import Optional
 
 from application.ai.llm_json_extract import parse_llm_json_to_dict
+from application.ai.prompt_contract import build_review_guard
 from application.engine.dtos.scene_director_dto import SceneDirectorAnalysis
 from domain.ai.services.llm_service import GenerationConfig, LLMService
 from domain.ai.value_objects.prompt import Prompt
 
 logger = logging.getLogger(__name__)
 
-SCENE_DIRECTOR_SYSTEM = """你是小说场记。根据给定章节大纲，只输出一个 JSON 对象，键为：
+SCENE_DIRECTOR_SYSTEM = """你是长篇小说控制台的场记。根据给定章节大纲，只输出一个 JSON 对象，键为：
 characters, locations, action_types, trigger_keywords, emotional_state, pov, performance_notes。
+""" + build_review_guard() + """
 characters/locations/action_types/trigger_keywords/performance_notes 均为字符串数组；emotional_state 为简短英文或中文单词；pov 为视点人物名字符串或 null。
 performance_notes 是可选的表演指令列表，描述动作级别的导演指示（如"眼神闪烁"、"握紧拳头"）。
 注意：不要在表演指令中透露角色的隐藏身份或设定，只描述可观察的动作和情绪。

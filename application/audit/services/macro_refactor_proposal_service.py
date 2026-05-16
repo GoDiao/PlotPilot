@@ -4,6 +4,7 @@ import os
 from typing import Dict, Any
 from application.audit.dtos.macro_refactor_dto import RefactorProposalRequest, RefactorProposal
 from application.ai.llm_json_extract import parse_llm_json_to_dict
+from application.ai.prompt_contract import build_review_guard
 from domain.ai.services.llm_service import LLMService, GenerationConfig
 from domain.ai.value_objects.prompt import Prompt
 
@@ -71,7 +72,9 @@ class MacroRefactorProposalService:
         Returns:
             Prompt: 构建的提示词
         """
-        system_prompt = """你是一个专业的小说编辑助手，帮助作者修复人设冲突和叙事不一致问题。
+        system_prompt = """你是长篇小说控制台的宏观重构审稿员，帮助作者修复人设冲突和叙事不一致问题。
+
+""" + build_review_guard() + """
 
 你的任务是分析当前事件，根据作者意图提供修复建议。
 
