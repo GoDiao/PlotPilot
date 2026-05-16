@@ -45,7 +45,7 @@
 - 相关提交：
   - `db43f30 feat: build trustworthy creation loop`
   - `f58e41f feat: expose prompt contract and guard memory commits`
-  - `pending feat: productize chapter memory and issue handling`
+  - `b536cd5 feat: productize chapter memory and issue handling`
 
 ### Phase 2：Prompt Governance
 
